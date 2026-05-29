@@ -1,0 +1,139 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const products = (await getCollection('products')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const statusLabel: Record<string, string> = {
+  active: '正式发布',
+  beta: '公测中',
+  deprecated: '已停用',
+};
+
+const statusClass: Record<string, string> = {
+  active: 'status-active',
+  beta: 'status-beta',
+  deprecated: 'status-deprecated',
+};
+---
+
+<BaseLayout title="产品" description="AI Labs 产品 — 我们构建的 AI 工具">
+  <h1>产品</h1>
+  <p class="subtitle">我们构建的 AI 工具</p>
+
+  <ul class="product-list">
+    {products.map((product) => (
+      <li class="product-item">
+        <a href={`/products/${product.id}`}>
+          {product.data.heroImage && (
+            <img
+              class="product-image"
+              src={product.data.heroImage}
+              alt={product.data.title}
+              loading="lazy"
+            />
+          )}
+          <div class="product-info">
+            <div class="product-meta">
+              {product.data.category && <span class="category">{product.data.category}</span>}
+              <span class={`status ${statusClass[product.data.status]}`}>
+                {statusLabel[product.data.status]}
+              </span>
+            </div>
+            <h2>{product.data.title}</h2>
+            <p>{product.data.description}</p>
+          </div>
+        </a>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>
+
+<style>
+  h1 {
+    font-size: 2.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: 2.5rem;
+  }
+
+  .product-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .product-item {
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+
+  .product-item a {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    color: var(--color-text);
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+
+  .product-item a:hover {
+    background: var(--color-surface);
+  }
+
+  .product-image {
+    width: 120px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .product-info {
+    flex: 1;
+  }
+
+  .product-meta {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+  }
+
+  .category {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .status {
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .status-active { background: #dcfce7; color: #166534; }
+  .status-beta { background: #fef3c7; color: #92400e; }
+  .status-deprecated { background: #fee2e2; color: #991b1b; }
+
+  .product-info h2 {
+    font-size: 1.2rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .product-info p {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+  }
+</style>

@@ -1,0 +1,23 @@
+[
+  {
+    "id": "vector-search",
+    "title": "Vector Search Integration",
+    "description": "Add native vector search capabilities to the AI Chat Assistant.",
+    "status": "in-progress",
+    "quarter": "Q2 2024"
+  },
+  {
+    "id": "mobile-app",
+    "title": "Mobile App",
+    "description": "iOS and Android apps for AI Chat Assistant.",
+    "status": "planned",
+    "quarter": "Q3 2024"
+  },
+  {
+    "id": "team-workspaces",
+    "title": "Team Workspaces",
+    "description": "Shared workspaces for teams to collaborate with AI tools.",
+    "status": "completed",
+    "quarter": "Q1 2024"
+  }
+]

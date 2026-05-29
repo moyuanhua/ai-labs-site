@@ -1,0 +1,144 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const products = (await getCollection('products')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+---
+
+<BaseLayout title="首页" description="AI Labs — 构建下一代 AI 工具">
+  <section class="hero">
+    <h1>🤖 AI Labs</h1>
+    <p>我们专注于研究和构建下一代 AI 工具，让人工智能触手可及。</p>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <h2>最新博客</h2>
+      <a href="/blog">查看全部 →</a>
+    </div>
+    <ul class="card-list">
+      {posts.slice(0, 3).map((post) => (
+        <li class="card">
+          <a href={`/blog/${post.id}`}>
+            <h3>{post.data.title}</h3>
+            <p>{post.data.description}</p>
+            <time>{post.data.pubDate.toLocaleDateString('zh-CN')}</time>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <h2>产品</h2>
+      <a href="/products">查看全部 →</a>
+    </div>
+    <ul class="card-list">
+      {products.slice(0, 3).map((product) => (
+        <li class="card">
+          <a href={`/products/${product.id}`}>
+            <h3>{product.data.title}</h3>
+            <p>{product.data.description}</p>
+            {product.data.category && <span class="badge">{product.data.category}</span>}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    text-align: center;
+    padding: 4rem 0 3rem;
+  }
+
+  .hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero p {
+    font-size: 1.2rem;
+    color: var(--color-text-muted);
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .section {
+    margin-bottom: 3rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .section-header a {
+    font-size: 0.9rem;
+  }
+
+  .card-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .card {
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+
+  .card a {
+    display: block;
+    padding: 1.25rem;
+    color: var(--color-text);
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+
+  .card a:hover {
+    background: var(--color-surface);
+  }
+
+  .card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .card p {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .card time {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .badge {
+    display: inline-block;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+</style>

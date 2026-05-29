@@ -1,0 +1,95 @@
+---
+/**
+ * Giscus Comments Component
+ *
+ * Giscus uses GitHub Discussions as the backend for page comments.
+ *
+ * How to configure Giscus for this site:
+ * --------------------------------------------------
+ * 1. Ensure the target repository is **public** on GitHub.
+ * 2. Install the Giscus GitHub App on the repository:
+ *    https://github.com/apps/giscus
+ * 3. Enable "Discussions" in the repository's Settings → Features.
+ * 4. Visit https://giscus.app and fill in your repository details to
+ *    generate your configuration values.
+ * 5. Copy the generated values into this component's default props
+ *    below, or pass them as props from the parent layout.
+ *
+ * Required props (or replace the placeholder defaults):
+ *   repo          — "owner/repo-name"  (e.g. "moyuanhua/ai-labs-site")
+ *   repoId        — Repository Node ID from giscus.app
+ *   category      — Discussion category name (e.g. "Comments")
+ *   categoryId    — Discussion category ID from giscus.app
+ *
+ * Optional props (sensible defaults provided):
+ *   mapping       — How page URLs are mapped to discussions
+ *                   ("pathname" | "url" | "title" | "og:title" | "specific" | "number")
+ *   strict        — Use strict title matching ("0" | "1")
+ *   reactionsEnabled — Show reaction emoji bar ("0" | "1")
+ *   emitMetadata  — Emit discussion metadata ("0" | "1")
+ *   inputPosition — Comment box position ("top" | "bottom")
+ *   theme         — Giscus theme ("light" | "dark" | "preferred_color_scheme" | …)
+ *   lang          — UI language (e.g. "en", "zh-CN")
+ *   loading       — Script loading strategy ("lazy" | "eager")
+ */
+
+interface Props {
+  repo?: string;
+  repoId?: string;
+  category?: string;
+  categoryId?: string;
+  mapping?: string;
+  strict?: '0' | '1';
+  reactionsEnabled?: '0' | '1';
+  emitMetadata?: '0' | '1';
+  inputPosition?: 'top' | 'bottom';
+  theme?: string;
+  lang?: string;
+  loading?: 'lazy' | 'eager';
+}
+
+const {
+  // ⚠️  Replace the placeholder values below with those generated on
+  //     https://giscus.app after installing the Giscus GitHub App.
+  repo = 'moyuanhua/ai-labs-site',
+  repoId = 'REPLACE_WITH_REPO_ID',
+  category = 'Comments',
+  categoryId = 'REPLACE_WITH_CATEGORY_ID',
+  mapping = 'pathname',
+  strict = '0',
+  reactionsEnabled = '1',
+  emitMetadata = '0',
+  inputPosition = 'bottom',
+  theme = 'preferred_color_scheme',
+  lang = 'zh-CN',
+  loading = 'lazy',
+} = Astro.props;
+---
+
+<section class="giscus-wrapper" aria-label="Comments">
+  <script
+    src="https://giscus.app/client.js"
+    data-repo={repo}
+    data-repo-id={repoId}
+    data-category={category}
+    data-category-id={categoryId}
+    data-mapping={mapping}
+    data-strict={strict}
+    data-reactions-enabled={reactionsEnabled}
+    data-emit-metadata={emitMetadata}
+    data-input-position={inputPosition}
+    data-theme={theme}
+    data-lang={lang}
+    data-loading={loading}
+    crossorigin="anonymous"
+    async
+  ></script>
+</section>
+
+<style>
+  .giscus-wrapper {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border, #e5e7eb);
+  }
+</style>

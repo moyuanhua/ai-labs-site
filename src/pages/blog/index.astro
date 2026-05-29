@@ -1,0 +1,128 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+---
+
+<BaseLayout title="博客" description="AI Labs 博客 — 技术文章、产品更新和行业见解">
+  <h1>博客</h1>
+  <p class="subtitle">技术文章、产品更新和行业见解</p>
+
+  <ul class="post-list">
+    {posts.map((post) => (
+      <li class="post-item">
+        <a href={`/blog/${post.id}`}>
+          {post.data.heroImage && (
+            <img
+              class="post-image"
+              src={post.data.heroImage}
+              alt={post.data.title}
+              loading="lazy"
+            />
+          )}
+          <div class="post-info">
+            <h2>{post.data.title}</h2>
+            <p>{post.data.description}</p>
+            <div class="post-meta">
+              <time>{post.data.pubDate.toLocaleDateString('zh-CN')}</time>
+              {post.data.tags && post.data.tags.length > 0 && (
+                <ul class="tags">
+                  {post.data.tags.map((tag) => <li class="tag">{tag}</li>)}
+                </ul>
+              )}
+            </div>
+          </div>
+        </a>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>
+
+<style>
+  h1 {
+    font-size: 2.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: 2.5rem;
+  }
+
+  .post-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .post-item {
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+
+  .post-item a {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    color: var(--color-text);
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+
+  .post-item a:hover {
+    background: var(--color-surface);
+  }
+
+  .post-image {
+    width: 120px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .post-info {
+    flex: 1;
+  }
+
+  .post-info h2 {
+    font-size: 1.2rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .post-info p {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .tags {
+    display: flex;
+    gap: 0.4rem;
+    list-style: none;
+    padding: 0;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+</style>
