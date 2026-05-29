@@ -1,0 +1,6 @@
+{
+  "title": "评论系统集成",
+  "description": "接入 Giscus 评论系统，支持在博客文章和产品页面下方进行讨论。",
+  "status": "in-progress",
+  "quarter": "2025 Q2"
+}

@@ -1,0 +1,83 @@
+---
+import Base from '../../layouts/Base.astro';
+import Giscus from '../../components/Giscus.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const products = await getCollection('products');
+  return products.map((product) => ({
+    params: { slug: product.id.replace(/\.mdx?$/, '') },
+    props: { product },
+  }));
+}
+
+const { product } = Astro.props;
+const { Content } = await render(product);
+---
+
+<Base title={product.data.title} description={product.data.description}>
+  <article class="article">
+    {product.data.cover && <img src={product.data.cover} alt={product.data.title} class="cover" />}
+    <h1>{product.data.title}</h1>
+    <div class="meta">
+      <span class={`status ${product.data.status}`}>{product.data.status}</span>
+      {product.data.url && <a href={product.data.url} target="_blank">🌐 Website</a>}
+      {product.data.repo && <a href={product.data.repo} target="_blank">📦 Repository</a>}
+    </div>
+    <div class="content">
+      <Content />
+    </div>
+  </article>
+  <Giscus />
+</Base>
+
+<style>
+  .article {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .cover {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+  }
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  .meta {
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  .status {
+    padding: 0.15rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .status.active {
+    background: #d4edda;
+    color: #155724;
+  }
+  .status.beta {
+    background: #fff3cd;
+    color: #856404;
+  }
+  .status.coming-soon {
+    background: #e2e3e5;
+    color: #383d41;
+  }
+  .content {
+    line-height: 1.8;
+  }
+  .content :global(h2) {
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  .content :global(p) {
+    margin-bottom: 1rem;
+  }
+</style>

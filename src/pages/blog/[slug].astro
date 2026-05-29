@@ -1,0 +1,98 @@
+---
+import Base from '../../layouts/Base.astro';
+import Giscus from '../../components/Giscus.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.id.replace(/\.mdx?$/, '') },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<Base title={post.data.title} description={post.data.description}>
+  <article class="article">
+    {post.data.cover && <img src={post.data.cover} alt={post.data.title} class="cover" />}
+    <h1>{post.data.title}</h1>
+    <div class="meta">
+      <time>{post.data.date.toLocaleDateString('zh-CN')}</time>
+      {post.data.tags.length > 0 && (
+        <span class="tags">
+          {post.data.tags.map((t) => (
+            <span class="tag">{t}</span>
+          ))}
+        </span>
+      )}
+    </div>
+    <div class="content">
+      <Content />
+    </div>
+  </article>
+  <Giscus />
+</Base>
+
+<style>
+  .article {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .cover {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+  }
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  .meta {
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  .tags {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .tag {
+    background: #eef;
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+  }
+  .content {
+    line-height: 1.8;
+  }
+  .content :global(h2) {
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  .content :global(p) {
+    margin-bottom: 1rem;
+  }
+  .content :global(pre) {
+    background: #1a1a2e;
+    color: #eee;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+  }
+  .content :global(code) {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+  }
+  .content :global(ul),
+  .content :global(ol) {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+</style>

@@ -1,0 +1,90 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const items = await getCollection('roadmap');
+
+const grouped = {
+  'in-progress': items.filter((i) => i.data.status === 'in-progress'),
+  planned: items.filter((i) => i.data.status === 'planned'),
+  done: items.filter((i) => i.data.status === 'done'),
+};
+
+const statusLabel: Record<string, string> = {
+  'in-progress': '🚧 In Progress',
+  planned: '📋 Planned',
+  done: '✅ Done',
+};
+---
+
+<Base title="Roadmap">
+  <h1>Roadmap</h1>
+  <p class="subtitle">Our development roadmap – what we're building, planning, and have shipped.</p>
+
+  {Object.entries(grouped).map(([status, list]) => (
+    list.length > 0 && (
+      <section class="group">
+        <h2>{statusLabel[status]}</h2>
+        <ul class="items">
+          {list.map((item) => (
+            <li class={`item ${status}`}>
+              <h3>{item.data.title}</h3>
+              <p>{item.data.description}</p>
+              {item.data.quarter && <span class="quarter">{item.data.quarter}</span>}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  ))}
+</Base>
+
+<style>
+  h1 {
+    margin-bottom: 0.25rem;
+  }
+  .subtitle {
+    color: #666;
+    margin-bottom: 2rem;
+  }
+  .group {
+    margin-bottom: 2rem;
+  }
+  .group h2 {
+    margin-bottom: 0.75rem;
+    font-size: 1.25rem;
+  }
+  .items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .item {
+    border-left: 4px solid #ccc;
+    padding: 0.75rem 1rem;
+    border-radius: 0 8px 8px 0;
+    background: #fff;
+  }
+  .item.in-progress {
+    border-color: #f0ad4e;
+  }
+  .item.planned {
+    border-color: #5bc0de;
+  }
+  .item.done {
+    border-color: #5cb85c;
+  }
+  .item h3 {
+    font-size: 1rem;
+    margin-bottom: 0.15rem;
+  }
+  .item p {
+    font-size: 0.9rem;
+    color: #555;
+  }
+  .quarter {
+    font-size: 0.8rem;
+    color: #888;
+  }
+</style>

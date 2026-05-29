@@ -1,0 +1,80 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const products = await getCollection('products');
+---
+
+<Base title="Products">
+  <h1>Products</h1>
+  <ul class="product-list">
+    {products.map((p) => (
+      <li class="product-card">
+        <a href={`/products/${p.id.replace(/\.mdx?$/, '')}`}>
+          {p.data.cover && <img src={p.data.cover} alt={p.data.title} class="cover" />}
+          <div class="info">
+            <h2>{p.data.title}</h2>
+            <p>{p.data.description}</p>
+            <span class={`status ${p.data.status}`}>{p.data.status}</span>
+          </div>
+        </a>
+      </li>
+    ))}
+  </ul>
+</Base>
+
+<style>
+  h1 {
+    margin-bottom: 1.5rem;
+  }
+  .product-list {
+    list-style: none;
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  .product-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .product-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  .product-card a {
+    color: inherit;
+  }
+  .cover {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+  }
+  .info {
+    padding: 1rem;
+  }
+  .info h2 {
+    font-size: 1.15rem;
+    margin-bottom: 0.25rem;
+  }
+  .status {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .status.active {
+    background: #d4edda;
+    color: #155724;
+  }
+  .status.beta {
+    background: #fff3cd;
+    color: #856404;
+  }
+  .status.coming-soon {
+    background: #e2e3e5;
+    color: #383d41;
+  }
+</style>

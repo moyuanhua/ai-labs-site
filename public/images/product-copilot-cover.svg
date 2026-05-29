@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" fill="none">
+  <rect width="800" height="400" rx="8" fill="#1a1a2e"/>
+  <text x="400" y="200" text-anchor="middle" dominant-baseline="central" font-family="system-ui" font-size="48" fill="white" font-weight="bold">AI Labs Copilot</text>
+  <text x="400" y="260" text-anchor="middle" font-family="system-ui" font-size="24" fill="#a0a0c0">智能编程助手</text>
+</svg>
