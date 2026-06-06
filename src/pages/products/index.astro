@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContentCard from '../../components/ContentCard.astro';
+import { getCollection } from 'astro:content';
+
+const BASE = import.meta.env.BASE_URL;
+const products = (await getCollection('products'))
+  .filter(p => !p.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const badgeConfig = {
+  live:         { label: 'Live',         color: 'green'  as const },
+  beta:         { label: 'Beta',         color: 'yellow' as const },
+  'coming-soon':{ label: 'Coming Soon',  color: 'slate'  as const },
+};
+---
+
+<BaseLayout title="Products — ai-labs" description="产品展示">
+  <div class="mb-10">
+    <h1 class="text-3xl font-bold text-white mb-2">Products</h1>
+    <p class="text-slate-400">我们正在构建的产品。</p>
+  </div>
+
+  {products.length === 0 ? (
+    <p class="text-slate-500 text-center py-20">暂无产品，敬请期待。</p>
+  ) : (
+    <div class="grid gap-4 sm:grid-cols-2">
+      {products.map(product => (
+        <ContentCard
+          href={`${BASE}products/${product.id}`}
+          title={product.data.title}
+          date={product.data.date}
+          description={product.data.description}
+          badge={badgeConfig[product.data.status]}
+        />
+      ))}
+    </div>
+  )}
+</BaseLayout>

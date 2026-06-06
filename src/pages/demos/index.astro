@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContentCard from '../../components/ContentCard.astro';
+import { getCollection } from 'astro:content';
+
+const BASE = import.meta.env.BASE_URL;
+const demos = (await getCollection('demos'))
+  .filter(p => !p.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<BaseLayout title="Demos — ai-labs" description="交互式 Demo 展示">
+  <div class="mb-10">
+    <h1 class="text-3xl font-bold text-white mb-2">Demos</h1>
+    <p class="text-slate-400">交互式 Demo——HTML + JS Islands，按需激活。</p>
+  </div>
+
+  {demos.length === 0 ? (
+    <p class="text-slate-500 text-center py-20">暂无 Demo，敬请期待。</p>
+  ) : (
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {demos.map(demo => (
+        <ContentCard
+          href={`${BASE}demos/${demo.id}`}
+          title={demo.data.title}
+          date={demo.data.date}
+          description={demo.data.description}
+          tags={demo.data.tags}
+        />
+      ))}
+    </div>
+  )}
+</BaseLayout>

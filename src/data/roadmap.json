@@ -1,0 +1,70 @@
+{
+  "columns": [
+    {
+      "id": "planned",
+      "label": "计划中",
+      "items": [
+        {
+          "title": "评论系统",
+          "type": "feature",
+          "description": "基于 GitHub Discussions 的无服务器评论，支持 blog 文章互动",
+          "eta": "2024-Q4"
+        },
+        {
+          "title": "全文搜索",
+          "type": "feature",
+          "description": "静态索引 + 客户端搜索，零服务器依赖",
+          "eta": "2024-Q4"
+        },
+        {
+          "title": "RSS Feed",
+          "type": "feature",
+          "description": "自动生成 blog / demo 的 RSS 订阅源",
+          "eta": "2024-Q3"
+        }
+      ]
+    },
+    {
+      "id": "in-progress",
+      "label": "进行中",
+      "items": [
+        {
+          "title": "Demo 展示区",
+          "type": "content",
+          "description": "搭建交互式 Demo 页面，展示 Canvas / WebGL / AI 效果",
+          "eta": "2024-07"
+        },
+        {
+          "title": "产品落地页",
+          "type": "content",
+          "description": "为各产品创建完整的 HTML 落地页，支持 AI 生成迭代",
+          "eta": "2024-07"
+        }
+      ]
+    },
+    {
+      "id": "done",
+      "label": "已完成",
+      "items": [
+        {
+          "title": "站点骨架搭建",
+          "type": "infra",
+          "description": "Astro + Tailwind + 内容集合，HTML-first 架构",
+          "date": "2024-06"
+        },
+        {
+          "title": "GitHub Actions 部署",
+          "type": "infra",
+          "description": "push 触发自动构建并部署到 GitHub Pages",
+          "date": "2024-06"
+        },
+        {
+          "title": "博客系统",
+          "type": "content",
+          "description": "支持 Markdown + HTML 混写，首批技术文章上线",
+          "date": "2024-06"
+        }
+      ]
+    }
+  ]
+}

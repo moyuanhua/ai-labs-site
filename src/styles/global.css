@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  .prose-content {
+    color: theme(colors.slate.200);
+    line-height: 1.75;
+  }
+
+  .prose-content h1,
+  .prose-content h2,
+  .prose-content h3,
+  .prose-content h4 {
+    color: theme(colors.white);
+    font-weight: 700;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+  }
+
+  .prose-content h1 { font-size: 1.875rem; }
+  .prose-content h2 { font-size: 1.5rem; }
+  .prose-content h3 { font-size: 1.25rem; }
+
+  .prose-content p { margin-bottom: 1em; }
+
+  .prose-content a {
+    color: theme(colors.indigo.400);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .prose-content code {
+    background: theme(colors.slate.800);
+    color: theme(colors.indigo.300);
+    padding: 0.15em 0.4em;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+  }
+
+  .prose-content pre {
+    background: theme(colors.slate.900);
+    border: 1px solid theme(colors.slate.700);
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    overflow-x: auto;
+    margin-bottom: 1em;
+  }
+
+  .prose-content pre code {
+    background: none;
+    padding: 0;
+    color: theme(colors.slate.200);
+  }
+
+  .prose-content ul,
+  .prose-content ol {
+    padding-left: 1.5em;
+    margin-bottom: 1em;
+  }
+
+  .prose-content li { margin-bottom: 0.25em; }
+
+  .prose-content blockquote {
+    border-left: 3px solid theme(colors.indigo.500);
+    padding-left: 1em;
+    color: theme(colors.slate.400);
+    margin: 1em 0;
+  }
+
+  .prose-content img {
+    border-radius: 0.5rem;
+    max-width: 100%;
+  }
+
+  .prose-content canvas {
+    display: block;
+    max-width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid theme(colors.slate.700);
+  }
+
+  .prose-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1em;
+    font-size: 0.875rem;
+  }
+
+  .prose-content th,
+  .prose-content td {
+    border: 1px solid theme(colors.slate.700);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+
+  .prose-content th {
+    background: theme(colors.slate.800);
+    color: theme(colors.white);
+  }
+}

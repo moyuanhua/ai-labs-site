@@ -1,0 +1,64 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = 'HTML-first content publishing' } = Astro.props;
+import '../styles/global.css';
+const BASE = import.meta.env.BASE_URL;
+const navLinks = [
+  { href: `${BASE}blog`, label: 'Blog' },
+  { href: `${BASE}demos`, label: 'Demos' },
+  { href: `${BASE}products`, label: 'Products' },
+  { href: `${BASE}roadmap`, label: 'Roadmap' },
+];
+const currentPath = Astro.url.pathname;
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="generator" content={Astro.generator} />
+  <meta name="description" content={description} />
+  <title>{title}</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" href="/favicon.ico" />
+</head>
+<body class="bg-slate-950 text-slate-300 min-h-screen flex flex-col antialiased">
+  <header class="border-b border-slate-800 sticky top-0 bg-slate-950/90 backdrop-blur z-50">
+    <nav class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href={BASE} class="text-white font-bold text-lg tracking-tight hover:text-indigo-400 transition-colors">
+        ai-labs
+      </a>
+      <ul class="flex items-center gap-1">
+        {navLinks.map(link => (
+          <li>
+            <a
+              href={link.href}
+              class={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                currentPath.startsWith(link.href)
+                  ? 'bg-slate-800 text-white'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </header>
+
+  <main class="flex-1 max-w-5xl mx-auto px-4 py-10 w-full">
+    <slot />
+  </main>
+
+  <footer class="border-t border-slate-800 py-6 mt-10">
+    <p class="text-center text-sm text-slate-600">
+      Built with Astro · HTML-first · AI-ready
+    </p>
+  </footer>
+</body>
+</html>

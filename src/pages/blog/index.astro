@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContentCard from '../../components/ContentCard.astro';
+import { getCollection } from 'astro:content';
+
+const BASE = import.meta.env.BASE_URL;
+const posts = (await getCollection('blog'))
+  .filter(p => !p.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<BaseLayout title="Blog — ai-labs" description="技术文章、思考与分享">
+  <div class="mb-10">
+    <h1 class="text-3xl font-bold text-white mb-2">Blog</h1>
+    <p class="text-slate-400">技术文章、思考与分享。每篇都是完整的 HTML 页面。</p>
+  </div>
+
+  {posts.length === 0 ? (
+    <p class="text-slate-500 text-center py-20">暂无文章，敬请期待。</p>
+  ) : (
+    <div class="grid gap-4 sm:grid-cols-2">
+      {posts.map(post => (
+        <ContentCard
+          href={`${BASE}blog/${post.id}`}
+          title={post.data.title}
+          date={post.data.date}
+          description={post.data.description}
+          tags={post.data.tags}
+        />
+      ))}
+    </div>
+  )}
+</BaseLayout>
