@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ContentCard from '../../components/ContentCard.astro';
-import AmbientCanvas from '../../components/AmbientCanvas.astro';
 import { getCollection } from 'astro:content';
 
 const BASE = import.meta.env.BASE_URL;
@@ -10,34 +9,41 @@ const products = (await getCollection('products'))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
 const badgeConfig = {
-  live:          { label: 'Live',         color: 'green'  as const },
-  beta:          { label: 'Beta',         color: 'yellow' as const },
-  'coming-soon': { label: 'Coming Soon',  color: 'slate'  as const },
+  live:          { label: 'Live',        color: 'green'  as const },
+  beta:          { label: 'Beta',        color: 'yellow' as const },
+  'coming-soon': { label: 'Coming Soon', color: 'slate'  as const },
 };
 ---
 
-<BaseLayout title="Products — ai-labs" description="产品展示">
-  <AmbientCanvas />
+<BaseLayout title="Products — ai-labs" description="我们正在构建的产品">
 
-  <header class="mb-12">
-    <p class="text-xs uppercase tracking-wider font-mono text-ink-mute mb-3">products · index</p>
-    <h1 class="font-serif text-4xl sm:text-5xl text-ink mb-3 tracking-tight">Products</h1>
-    <p class="font-mono text-ink-mute leading-relaxed">我们正在构建的产品。</p>
+  <header class="pt-16 pb-12 text-center" data-reveal>
+    <p class="text-xs uppercase tracking-widest font-sans font-medium text-text-muted mb-4">
+      products · index
+    </p>
+    <h1 class="font-script text-5xl sm:text-6xl font-bold text-text mb-4 tracking-tight">
+      Products
+    </h1>
+    <p class="font-sans text-base sm:text-lg text-text-muted max-w-xl mx-auto leading-relaxed">
+      我们正在构建的产品。
+    </p>
   </header>
 
-  {products.length === 0 ? (
-    <p class="font-mono text-ink-faint text-center py-20">— 暂无产品，敬请期待 —</p>
-  ) : (
-    <div class="grid gap-4 sm:grid-cols-2">
-      {products.map(product => (
-        <ContentCard
-          href={`${BASE}products/${product.id}`}
-          title={product.data.title}
-          date={product.data.date}
-          description={product.data.description}
-          badge={badgeConfig[product.data.status]}
-        />
-      ))}
-    </div>
-  )}
+  <section data-reveal>
+    {products.length === 0 ? (
+      <p class="font-sans text-text-muted text-center py-20">— 暂无产品，敬请期待 —</p>
+    ) : (
+      <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {products.map(product => (
+          <ContentCard
+            href={`${BASE}products/${product.id}`}
+            title={product.data.title}
+            date={product.data.date}
+            description={product.data.description}
+            badge={badgeConfig[product.data.status]}
+          />
+        ))}
+      </div>
+    )}
+  </section>
 </BaseLayout>

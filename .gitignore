@@ -1,5 +1,6 @@
 # OpenCode - never commit to repo
 opencode.json
+.opencode/
 
 # Astro build output
 dist/

@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import AmbientCanvas from '../../components/AmbientCanvas.astro';
 import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -15,43 +14,62 @@ const { Content } = await render(product);
 const BASE = import.meta.env.BASE_URL;
 
 const statusConfig = {
-  live:          { label: 'Live',         cls: 'bg-teal-900/40  text-teal-300  border-teal-800' },
-  beta:          { label: 'Beta',         cls: 'bg-amber-900/40 text-amber-300 border-amber-800' },
-  'coming-soon': { label: 'Coming Soon',  cls: 'bg-surface      text-ink-mute  border-rule' },
+  live:          { label: 'Live',        cls: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  beta:          { label: 'Beta',        cls: 'bg-amber-100   text-amber-700   border-amber-200' },
+  'coming-soon': { label: 'Coming Soon', cls: 'bg-zinc-100    text-zinc-500    border-zinc-200' },
 };
 const badge = statusConfig[product.data.status];
 ---
 
 <BaseLayout title={`${product.data.title} — ai-labs`} description={product.data.description}>
-  <AmbientCanvas />
+  <article class="max-w-3xl mx-auto py-12">
+    <a
+      href={`${BASE}products`}
+      class="font-sans text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer"
+    >
+      ← Products
+    </a>
 
-  <article class="max-w-2xl mx-auto">
-    <a href={`${BASE}products`} class="font-mono text-sm text-ink-mute hover:text-accent transition-colors">← Products</a>
-
-    <header class="mt-8 mb-10">
+    <header class="mt-8 mb-12" data-reveal>
       <div class="flex items-start gap-4 flex-wrap">
-        <h1 class="font-serif text-3xl sm:text-4xl text-ink leading-tight tracking-tight flex-1">{product.data.title}</h1>
-        <span class={`text-sm font-mono px-3 py-1 rounded-full border ${badge.cls}`}>{badge.label}</span>
+        <h1 class="font-script text-4xl sm:text-5xl font-bold text-text leading-tight tracking-tight flex-1">
+          {product.data.title}
+        </h1>
+        <span class={`shrink-0 text-sm font-sans font-medium px-3 py-1 rounded-full border ${badge.cls}`}>
+          {badge.label}
+        </span>
       </div>
-      <p class="font-mono text-ink-mute mt-3 leading-relaxed">{product.data.description}</p>
+      <p class="font-sans text-base text-text-muted mt-4 leading-relaxed">
+        {product.data.description}
+      </p>
 
-      <div class="flex gap-3 mt-6 flex-wrap">
-        {product.data.url && (
-          <a href={product.data.url} target="_blank" rel="noopener noreferrer"
-             class="px-4 py-2 bg-accent text-bg hover:bg-accent/90 rounded font-mono text-sm font-medium transition-colors">
-            访问产品 ↗
-          </a>
-        )}
-        {product.data.github && (
-          <a href={product.data.github} target="_blank" rel="noopener noreferrer"
-             class="px-4 py-2 border border-rule text-ink hover:border-ink-mute rounded font-mono text-sm transition-colors">
-            GitHub ↗
-          </a>
-        )}
-      </div>
+      {(product.data.url || product.data.github) && (
+        <div class="flex gap-3 mt-6 flex-wrap">
+          {product.data.url && (
+            <a
+              href={product.data.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="px-5 py-2.5 bg-accent text-white hover:bg-accent-2 rounded-full font-sans font-semibold text-sm transition-colors duration-200 cursor-pointer"
+            >
+              访问产品 ↗
+            </a>
+          )}
+          {product.data.github && (
+            <a
+              href={product.data.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="px-5 py-2.5 border border-border text-text-muted hover:text-text hover:border-text-muted rounded-full font-sans font-medium text-sm transition-colors duration-200 cursor-pointer"
+            >
+              GitHub ↗
+            </a>
+          )}
+        </div>
+      )}
     </header>
 
-    <div class="prose-content">
+    <div class="prose-content" data-reveal>
       <Content />
     </div>
   </article>
