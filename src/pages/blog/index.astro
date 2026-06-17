@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ContentCard from '../../components/ContentCard.astro';
+import AmbientCanvas from '../../components/AmbientCanvas.astro';
 import { getCollection } from 'astro:content';
 
 const BASE = import.meta.env.BASE_URL;
@@ -10,13 +11,16 @@ const posts = (await getCollection('blog'))
 ---
 
 <BaseLayout title="Blog — ai-labs" description="技术文章、思考与分享">
-  <div class="mb-10">
-    <h1 class="text-3xl font-bold text-white mb-2">Blog</h1>
-    <p class="text-slate-400">技术文章、思考与分享。每篇都是完整的 HTML 页面。</p>
-  </div>
+  <AmbientCanvas />
+
+  <header class="mb-12">
+    <p class="text-xs uppercase tracking-wider font-mono text-ink-mute mb-3">blog · index</p>
+    <h1 class="font-serif text-4xl sm:text-5xl text-ink mb-3 tracking-tight">Blog</h1>
+    <p class="font-mono text-ink-mute leading-relaxed">技术文章、思考与分享。每篇都是完整的 HTML 页面。</p>
+  </header>
 
   {posts.length === 0 ? (
-    <p class="text-slate-500 text-center py-20">暂无文章，敬请期待。</p>
+    <p class="font-mono text-ink-faint text-center py-20">— 暂无文章，敬请期待 —</p>
   ) : (
     <div class="grid gap-4 sm:grid-cols-2">
       {posts.map(post => (

@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AmbientCanvas from '../components/AmbientCanvas.astro';
+---
+
+<BaseLayout title="Talk — ai-labs" description="将来可以和我聊天的 AI">
+  <AmbientCanvas intensity="featured" />
+
+  <article class="max-w-3xl mx-auto">
+    <header class="text-center py-12">
+      <p class="text-xs uppercase tracking-wider font-mono text-ink-mute mb-3">talk · soon</p>
+      <h1 class="font-serif text-4xl sm:text-5xl text-ink mb-4 tracking-tight">Talk to me</h1>
+      <p class="font-mono text-ink-mute leading-relaxed max-w-xl mx-auto">
+        将来这里可以在线和我聊天——AI 训练自本站内容与我的简历。
+      </p>
+      <div class="mt-6">
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent border border-accent/30 font-mono text-xs uppercase tracking-wider">
+          <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
+          Coming soon
+        </span>
+      </div>
+    </header>
+
+    <div class="mt-12 space-y-4">
+      <textarea
+        disabled
+        rows="4"
+        placeholder="等上线后，你可以在这里问我任何问题…"
+        class="w-full max-w-2xl mx-auto block bg-surface border border-rule rounded-md p-4 font-mono text-sm text-ink-mute resize-none cursor-not-allowed focus:outline-none"
+      ></textarea>
+      <div class="max-w-2xl mx-auto flex items-center justify-between gap-4 flex-wrap">
+        <p class="font-mono text-xs text-ink-faint">输入框已禁用。上线后才能用。</p>
+        <button
+          type="button"
+          disabled
+          class="bg-accent/50 text-bg/70 px-4 py-2 rounded font-mono text-sm cursor-not-allowed"
+        >
+          发送
+        </button>
+      </div>
+    </div>
+
+    <section class="mt-20 max-w-2xl mx-auto">
+      <p class="text-xs uppercase tracking-wider font-mono text-ink-mute mb-4">思路 · how it works</p>
+      <h2 class="font-serif text-2xl text-ink mb-6">训练逻辑</h2>
+      <ul class="space-y-4 font-mono text-sm text-ink-mute leading-relaxed">
+        <li class="flex gap-3">
+          <span class="text-accent shrink-0">·</span>
+          <span><span class="text-ink">内容训练</span>——模型读取本站所有文章、Demo、产品页与 Roadmap，建立关于我在做什么、怎么思考的 baseline。</span>
+        </li>
+        <li class="flex gap-3">
+          <span class="text-accent shrink-0">·</span>
+          <span><span class="text-ink">人格训练</span>——用我的简历与过往作品塑造语气，回复带我的口吻，而不是通用 AI 助手。</span>
+        </li>
+        <li class="flex gap-3">
+          <span class="text-accent shrink-0">·</span>
+          <span><span class="text-ink">边界透明</span>——模型在不确定时会承认“我不知道”，引用不到的来源会标记，而不是硬编一个答案。</span>
+        </li>
+      </ul>
+    </section>
+  </article>
+</BaseLayout>

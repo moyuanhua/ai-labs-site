@@ -21,6 +21,12 @@
           "type": "feature",
           "description": "自动生成 blog / demo 的 RSS 订阅源",
           "eta": "2024-Q3"
+        },
+        {
+          "title": "在线 AI 聊天",
+          "type": "feature",
+          "description": "接入完整 AI 对话系统，由本站内容与简历驱动，可在线与访客对话",
+          "eta": "TBD"
         }
       ]
     },

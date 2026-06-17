@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ContentCard from '../../components/ContentCard.astro';
+import AmbientCanvas from '../../components/AmbientCanvas.astro';
 import { getCollection } from 'astro:content';
 
 const BASE = import.meta.env.BASE_URL;
@@ -10,15 +11,18 @@ const demos = (await getCollection('demos'))
 ---
 
 <BaseLayout title="Demos — ai-labs" description="交互式 Demo 展示">
-  <div class="mb-10">
-    <h1 class="text-3xl font-bold text-white mb-2">Demos</h1>
-    <p class="text-slate-400">交互式 Demo——HTML + JS Islands，按需激活。</p>
-  </div>
+  <AmbientCanvas />
+
+  <header class="mb-12">
+    <p class="text-xs uppercase tracking-wider font-mono text-ink-mute mb-3">demos · index</p>
+    <h1 class="font-serif text-4xl sm:text-5xl text-ink mb-3 tracking-tight">Demos</h1>
+    <p class="font-mono text-ink-mute leading-relaxed">交互式 Demo——HTML + JS Islands，按需激活。</p>
+  </header>
 
   {demos.length === 0 ? (
-    <p class="text-slate-500 text-center py-20">暂无 Demo，敬请期待。</p>
+    <p class="font-mono text-ink-faint text-center py-20">— 暂无 Demo，敬请期待 —</p>
   ) : (
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid gap-4 sm:grid-cols-2">
       {demos.map(demo => (
         <ContentCard
           href={`${BASE}demos/${demo.id}`}
