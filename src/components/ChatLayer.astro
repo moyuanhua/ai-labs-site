@@ -9,7 +9,7 @@ const BASE = import.meta.env.BASE_URL;
 {variant === 'hero' && (
   <div
     transition:name="chat-layer"
-    class="chat-hero relative flex flex-col min-h-screen bg-slate-50 overflow-hidden"
+    class="chat-hero relative flex flex-col h-[calc(100vh-65px)] bg-slate-50 overflow-hidden w-screen ml-[calc(50%-50vw)]"
   >
     {/* Top status bar */}
     <div class="relative shrink-0 px-6 sm:px-10 lg:px-16 xl:px-24 pt-6 pb-4 flex items-center justify-between border-b border-slate-200">
@@ -39,12 +39,17 @@ const BASE = import.meta.env.BASE_URL;
     {/* Bottom input bar */}
     <div class="relative shrink-0 border-t border-slate-200 bg-white">
       <div class="w-full px-6 sm:px-10 lg:px-16 xl:px-24 py-5 flex gap-3 items-center">
-        <input
-          data-chat-input
-          type="text"
-          placeholder="ask me anything…"
-          class="flex-1 bg-transparent border-none text-slate-900 placeholder-slate-400 text-sm sm:text-base font-body focus:outline-none"
-        />
+        <div class="relative flex-1">
+          <span data-chat-placeholder class="chat-placeholder absolute inset-0 flex items-center pointer-events-none text-slate-400 text-sm sm:text-base font-body select-none">
+            ask me anything…<span class="chat-cursor-blink">▌</span>
+          </span>
+          <input
+            data-chat-input
+            type="text"
+            placeholder=""
+            class="relative w-full bg-transparent border-none text-slate-900 text-sm sm:text-base font-body focus:outline-none"
+          />
+        </div>
         <button
           data-chat-send
           type="button"
@@ -79,7 +84,7 @@ const BASE = import.meta.env.BASE_URL;
 {variant === 'fullscreen' && (
   <div
     transition:name="chat-layer"
-    class="chat-fullscreen relative fixed inset-0 z-50 bg-slate-50 flex flex-col overflow-hidden"
+    class="chat-fullscreen fixed inset-0 z-50 bg-slate-50 flex flex-col overflow-hidden"
   >
     <div class="relative flex-1 flex flex-col w-full">
       <header class="shrink-0 px-6 sm:px-10 lg:px-16 xl:px-24 pt-6 pb-4 flex items-center justify-between border-b border-slate-200">
@@ -108,12 +113,17 @@ const BASE = import.meta.env.BASE_URL;
 
       <div class="relative shrink-0 border-t border-slate-200 bg-white">
         <div class="px-6 sm:px-10 lg:px-16 xl:px-24 py-5 flex gap-3 items-center">
-          <input
-            data-chat-input
-            type="text"
-            placeholder="ask me anything…"
-            class="flex-1 bg-transparent border-none text-slate-900 placeholder-slate-400 text-sm sm:text-base font-body focus:outline-none"
-          />
+          <div class="relative flex-1">
+            <span data-chat-placeholder class="chat-placeholder absolute inset-0 flex items-center pointer-events-none text-slate-400 text-sm sm:text-base font-body select-none">
+              ask me anything…<span class="chat-cursor-blink">▌</span>
+            </span>
+            <input
+              data-chat-input
+              type="text"
+              placeholder=""
+              class="relative w-full bg-transparent border-none text-slate-900 text-sm sm:text-base font-body focus:outline-none"
+            />
+          </div>
           <button
             data-chat-send
             type="button"
@@ -130,6 +140,10 @@ const BASE = import.meta.env.BASE_URL;
 <script>
   const STORAGE_KEY = 'moyuanhua-chat-history';
   const FAKE_AI_REPLY = "I'm still being trained on moyuanhua's content. Once I'm live, I'll be able to answer questions about the blog, demos, and products. For now, feel free to browse the content on the other pages.";
+  const EXAMPLE_CONVERSATION: Array<{ role: 'user' | 'ai'; text: string }> = [
+    { role: 'user', text: '你可以做什么？' },
+    { role: 'ai', text: '我可以回答关于 moyuanhua 的博客文章、demo 项目和产品的问题。比如你可以问我：\n• 你最近写了什么博客？\n• 有哪些有趣的 demo？\n• 你在做哪些产品？' },
+  ];
 
   function getHistory(): Array<{ role: 'user' | 'ai'; text: string; ts: number }> {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
@@ -155,26 +169,58 @@ const BASE = import.meta.env.BASE_URL;
     return div;
   }
 
+  function createExampleBubble(role: 'user' | 'ai', text: string): HTMLElement {
+    const bubble = createBubble(role, text);
+    bubble.classList.add('chat-example-bubble');
+    bubble.setAttribute('data-example', 'true');
+    if (role === 'ai') bubble.style.whiteSpace = 'pre-line';
+    return bubble;
+  }
+
   function initChat() {
     const messagesEl = document.querySelector('[data-chat-messages]') as HTMLElement | null;
     const inputEl = document.querySelector('[data-chat-input]') as HTMLInputElement | null;
     const sendBtn = document.querySelector('[data-chat-send]') as HTMLButtonElement | null;
+    const placeholderEl = document.querySelector('[data-chat-placeholder]') as HTMLElement | null;
     if (!messagesEl || !inputEl || !sendBtn) return;
 
     messagesEl.innerHTML = '';
     const history = getHistory();
-    history.forEach(msg => messagesEl.appendChild(createBubble(msg.role, msg.text)));
+    if (history.length === 0) {
+      // Show example conversation for first-time visitors
+      EXAMPLE_CONVERSATION.forEach(msg => messagesEl.appendChild(createExampleBubble(msg.role, msg.text)));
+    } else {
+      history.forEach(msg => {
+        const b = createBubble(msg.role, msg.text);
+        if (msg.role === 'ai' && msg.text.includes('\n')) b.style.whiteSpace = 'pre-line';
+        messagesEl.appendChild(b);
+      });
+    }
     messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    // Placeholder cursor toggle: hide blinking cursor when input is focused or has content
+    function updatePlaceholder() {
+      if (!placeholderEl) return;
+      placeholderEl.style.display = (inputEl!.value !== '' || document.activeElement === inputEl) ? 'none' : '';
+    }
+    inputEl.addEventListener('focus', updatePlaceholder);
+    inputEl.addEventListener('blur', updatePlaceholder);
+    inputEl.addEventListener('input', updatePlaceholder);
+    updatePlaceholder();
 
     function send() {
       const text = inputEl!.value.trim();
       if (!text) return;
+
+      // Clear example bubbles on first real send
+      messagesEl!.querySelectorAll('[data-example="true"]').forEach(el => el.remove());
 
       messagesEl!.appendChild(createBubble('user', text));
       const hist = getHistory();
       hist.push({ role: 'user', text, ts: Date.now() });
       saveHistory(hist);
       inputEl!.value = '';
+      updatePlaceholder();
       messagesEl!.scrollTop = messagesEl!.scrollHeight;
 
       setTimeout(() => {

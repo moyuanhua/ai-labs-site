@@ -231,6 +231,23 @@
   30%           { opacity: 1;   transform: scale(1.2); }
 }
 
+/* Blinking cursor guide for chat input placeholder */
+.chat-cursor-blink {
+  animation: chat-cursor-blink 1s step-end infinite;
+  color: var(--chat-accent, #6366F1);
+  font-weight: 400;
+  margin-left: 2px;
+}
+@keyframes chat-cursor-blink {
+  0%, 50%   { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Example conversation bubbles — slightly muted to distinguish from real chat */
+.chat-example-bubble {
+  opacity: 0.75;
+}
+
 /* Custom scrollbar for chat message areas */
 [data-chat-messages]::-webkit-scrollbar { width: 4px; }
 [data-chat-messages]::-webkit-scrollbar-track { background: transparent; }
@@ -240,4 +257,5 @@
 @media (prefers-reduced-motion: reduce) {
   .chat-bubble-enter { animation: none; }
   .typing-dot        { animation: none; opacity: 0.6; }
+  .chat-cursor-blink { animation: none; opacity: 0.6; }
 }
