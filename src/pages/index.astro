@@ -28,27 +28,27 @@ const statusBadge = (status: string) => {
 
 <BaseLayout title="ai-labs" description="moyuanhua — personal portfolio of writing, demos, and AI experiments">
 
-  <section class="py-24 md:py-32 text-center" data-reveal>
-    <p class="text-xs sm:text-sm uppercase tracking-widest font-sans font-medium text-text-muted mb-4">
+  <section class="py-24 md:py-32 text-center">
+    <p class="text-xs sm:text-sm uppercase tracking-widest font-body font-medium text-text-muted mb-4">
       Personal · Portfolio
     </p>
-    <h1 class="font-script text-5xl sm:text-7xl font-bold text-text mb-6 tracking-tight">
+    <h1 class="font-heading text-5xl sm:text-6xl font-semibold text-text mb-6 tracking-tight">
       moyuanhua
     </h1>
-    <p class="font-sans text-lg sm:text-xl text-text-muted max-w-xl mx-auto leading-relaxed">
+    <p class="font-body text-lg sm:text-xl text-text-muted max-w-xl mx-auto leading-relaxed">
       内容展示 · 创意实验 · AI 对话<br/>
       写我所想，做我所玩，聊我所信。
     </p>
     <div class="flex items-center justify-center gap-3 mt-10 flex-wrap">
       <a
         href={`${BASE}blog`}
-        class="px-6 py-3 bg-accent text-white hover:bg-accent-2 rounded-full font-sans font-semibold shadow-md transition-all duration-200 cursor-pointer"
+        class="px-6 py-3 bg-accent text-white hover:bg-accent-2 rounded-full font-body font-semibold shadow-md transition-colors duration-200 cursor-pointer"
       >
         查看作品
       </a>
       <a
         href={`${BASE}roadmap`}
-        class="px-6 py-3 border border-border text-text-muted hover:text-text hover:border-text-muted rounded-full font-sans font-medium transition-all duration-200 cursor-pointer"
+        class="px-6 py-3 border border-border text-text-muted hover:text-text hover:border-text-muted rounded-full font-body font-medium transition-colors duration-200 cursor-pointer"
       >
         了解更多
       </a>
@@ -56,17 +56,17 @@ const statusBadge = (status: string) => {
   </section>
 
   {allPosts.length > 0 && (
-    <section class="mb-16" data-reveal>
+    <section class="mb-16">
       <header class="mb-8 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <p class="text-xs uppercase tracking-widest font-sans font-medium text-text-muted mb-2">
+          <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-2">
             blog · {String(allPosts.length).padStart(2, '0')}
           </p>
-          <h2 class="font-script text-3xl sm:text-4xl font-bold text-text">最新文章</h2>
+          <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-text">最新文章</h2>
         </div>
         <a
           href={`${BASE}blog`}
-          class="font-sans text-sm font-medium text-accent hover:text-accent-2 transition-colors duration-200 cursor-pointer"
+          class="font-body text-sm font-medium text-accent hover:text-accent-2 transition-colors duration-200 cursor-pointer"
         >
           全部 →
         </a>
@@ -86,17 +86,17 @@ const statusBadge = (status: string) => {
   )}
 
   {allDemos.length > 0 && (
-    <section class="mb-16" data-reveal>
+    <section class="mb-16">
       <header class="mb-8 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <p class="text-xs uppercase tracking-widest font-sans font-medium text-text-muted mb-2">
+          <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-2">
             demos · {String(allDemos.length).padStart(2, '0')}
           </p>
-          <h2 class="font-script text-3xl sm:text-4xl font-bold text-text">交互 Demo</h2>
+          <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-text">交互 Demo</h2>
         </div>
         <a
           href={`${BASE}demos`}
-          class="font-sans text-sm font-medium text-accent hover:text-accent-2 transition-colors duration-200 cursor-pointer"
+          class="font-body text-sm font-medium text-accent hover:text-accent-2 transition-colors duration-200 cursor-pointer"
         >
           全部 →
         </a>
@@ -116,17 +116,17 @@ const statusBadge = (status: string) => {
   )}
 
   {allProducts.length > 0 && (
-    <section class="mb-16" data-reveal>
+    <section class="mb-16">
       <header class="mb-8 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <p class="text-xs uppercase tracking-widest font-sans font-medium text-text-muted mb-2">
+          <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-2">
             products · {String(allProducts.length).padStart(2, '0')}
           </p>
-          <h2 class="font-script text-3xl sm:text-4xl font-bold text-text">产品</h2>
+          <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-text">产品</h2>
         </div>
         <a
           href={`${BASE}products`}
-          class="font-sans text-sm font-medium text-accent hover:text-accent-2 transition-colors duration-200 cursor-pointer"
+          class="font-body text-sm font-medium text-accent hover:text-accent-2 transition-colors duration-200 cursor-pointer"
         >
           全部 →
         </a>

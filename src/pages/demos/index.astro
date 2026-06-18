@@ -11,21 +11,21 @@ const demos = (await getCollection('demos'))
 
 <BaseLayout title="Demos — ai-labs" description="交互式 Demo 展示">
 
-  <header class="pt-16 pb-12 text-center" data-reveal>
-    <p class="text-xs uppercase tracking-widest font-sans font-medium text-text-muted mb-4">
+  <header class="pt-16 pb-12 text-center">
+    <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-4">
       demos · index
     </p>
-    <h1 class="font-script text-5xl sm:text-6xl font-bold text-text mb-4 tracking-tight">
+    <h1 class="font-heading text-4xl font-semibold text-text mb-4 tracking-tight">
       Demos
     </h1>
-    <p class="font-sans text-base sm:text-lg text-text-muted max-w-xl mx-auto leading-relaxed">
+    <p class="font-body text-base sm:text-lg text-text-muted max-w-xl mx-auto leading-relaxed">
       交互式 Demo——HTML + JS Islands，按需激活。
     </p>
   </header>
 
-  <section data-reveal>
+  <section>
     {demos.length === 0 ? (
-      <p class="font-sans text-text-muted text-center py-20">— 暂无 Demo，敬请期待 —</p>
+      <p class="font-body text-text-muted text-center py-20">— 暂无 Demo，敬请期待 —</p>
     ) : (
       <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {demos.map(demo => (

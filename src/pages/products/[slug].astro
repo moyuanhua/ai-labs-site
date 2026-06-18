@@ -25,21 +25,21 @@ const badge = statusConfig[product.data.status];
   <article class="max-w-3xl mx-auto py-12">
     <a
       href={`${BASE}products`}
-      class="font-sans text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer"
+      class="font-body text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer"
     >
       ← Products
     </a>
 
-    <header class="mt-8 mb-12" data-reveal>
+    <header class="mt-8 mb-12">
       <div class="flex items-start gap-4 flex-wrap">
-        <h1 class="font-script text-4xl sm:text-5xl font-bold text-text leading-tight tracking-tight flex-1">
+        <h1 class="font-heading text-4xl font-semibold text-text leading-tight tracking-tight flex-1">
           {product.data.title}
         </h1>
-        <span class={`shrink-0 text-sm font-sans font-medium px-3 py-1 rounded-full border ${badge.cls}`}>
+        <span class={`shrink-0 text-sm font-body font-medium px-3 py-1 rounded-full border ${badge.cls}`}>
           {badge.label}
         </span>
       </div>
-      <p class="font-sans text-base text-text-muted mt-4 leading-relaxed">
+      <p class="font-body text-base text-text-muted mt-4 leading-relaxed">
         {product.data.description}
       </p>
 
@@ -50,7 +50,7 @@ const badge = statusConfig[product.data.status];
               href={product.data.url}
               target="_blank"
               rel="noopener noreferrer"
-              class="px-5 py-2.5 bg-accent text-white hover:bg-accent-2 rounded-full font-sans font-semibold text-sm transition-colors duration-200 cursor-pointer"
+              class="px-5 py-2.5 bg-accent text-white hover:bg-accent-2 rounded-full font-body font-semibold text-sm transition-colors duration-200 cursor-pointer"
             >
               访问产品 ↗
             </a>
@@ -60,7 +60,7 @@ const badge = statusConfig[product.data.status];
               href={product.data.github}
               target="_blank"
               rel="noopener noreferrer"
-              class="px-5 py-2.5 border border-border text-text-muted hover:text-text hover:border-text-muted rounded-full font-sans font-medium text-sm transition-colors duration-200 cursor-pointer"
+              class="px-5 py-2.5 border border-border text-text-muted hover:text-text hover:border-text-muted rounded-full font-body font-medium text-sm transition-colors duration-200 cursor-pointer"
             >
               GitHub ↗
             </a>
@@ -69,7 +69,7 @@ const badge = statusConfig[product.data.status];
       )}
     </header>
 
-    <div class="prose-content" data-reveal>
+    <div class="prose-content">
       <Content />
     </div>
   </article>

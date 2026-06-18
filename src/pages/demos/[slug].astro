@@ -18,25 +18,25 @@ const BASE = import.meta.env.BASE_URL;
   <article class="max-w-3xl mx-auto py-12">
     <a
       href={`${BASE}demos`}
-      class="font-sans text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer"
+      class="font-body text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer"
     >
       ← Demos
     </a>
 
-    <header class="mt-8 mb-12" data-reveal>
-      <h1 class="font-script text-4xl sm:text-5xl font-bold text-text mb-4 leading-tight tracking-tight">
+    <header class="mt-8 mb-12">
+      <h1 class="font-heading text-4xl font-semibold text-text mb-4 leading-tight tracking-tight">
         {demo.data.title}
       </h1>
       <time
         datetime={demo.data.date.toISOString()}
-        class="font-sans text-sm text-text-muted block"
+        class="font-body text-sm text-text-muted block"
       >
         {demo.data.date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
       </time>
       {demo.data.tags && demo.data.tags.length > 0 && (
         <div class="flex flex-wrap gap-1.5 mt-4">
           {demo.data.tags.map(tag => (
-            <span class="inline-flex items-center text-xs font-medium font-sans text-accent bg-accent/5 border border-accent/15 px-2.5 py-1 rounded-full">
+            <span class="inline-flex items-center text-xs font-medium font-body text-accent bg-accent/5 border border-accent/15 px-2.5 py-1 rounded-full">
               {tag}
             </span>
           ))}
@@ -44,7 +44,7 @@ const BASE = import.meta.env.BASE_URL;
       )}
     </header>
 
-    <div class="prose-content" data-reveal>
+    <div class="prose-content">
       <Content />
     </div>
   </article>

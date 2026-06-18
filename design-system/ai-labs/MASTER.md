@@ -7,7 +7,7 @@
 ---
 
 **Project:** ai-labs
-**Generated:** 2026-06-17 18:22:43
+**Updated:** 2026-06-18
 **Category:** Portfolio/Personal
 
 ---
@@ -18,25 +18,46 @@
 
 | Role | Hex | CSS Variable |
 |------|-----|--------------|
-| Primary | `#18181B` | `--color-primary` |
-| Secondary | `#3F3F46` | `--color-secondary` |
-| CTA/Accent | `#2563EB` | `--color-cta` |
-| Background | `#FAFAFA` | `--color-background` |
+| Background | `#FAFAFA` | `--color-bg` |
+| Surface | `#FFFFFF` | `--color-surface` |
+| Surface-2 | `#F4F4F5` | `--color-surface-2` |
 | Text | `#09090B` | `--color-text` |
+| Text Muted | `#52525B` | `--color-text-muted` |
+| Text Faint | `#A1A1AA` | `--color-text-faint` |
+| Accent (CTA) | `#2563EB` | `--color-accent` |
+| Accent Hover | `#1D4ED8` | `--color-accent-2` |
+| Border | `#E4E4E7` | `--color-border` |
+| Dark | `#18181B` | `--color-dark` |
 
-**Color Notes:** Monochrome + blue accent
+**Color Notes:** Light zinc neutrals + blue accent. Emerald for "live" status, amber for "beta" status.
 
 ### Typography
 
-- **Heading Font:** Caveat
-- **Body Font:** Quicksand
-- **Mood:** handwritten, personal, friendly, casual, warm, charming
-- **Google Fonts:** [Caveat + Quicksand](https://fonts.google.com/share?selection.family=Caveat:wght@400;500;600;700|Quicksand:wght@300;400;500;600;700)
+- **Heading Font:** Lexend (weights 400, 500, 600, 700)
+- **Body Font:** Source Sans 3 (weights 300, 400, 500, 600, 700)
+- **Mono Font:** System monospace stack (code blocks only, no Google Font)
+- **Mood:** content-focused, readable, clean, professional, trustworthy, minimal
+- **Google Fonts:** [Lexend + Source Sans 3](https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap)
 
-**CSS Import:**
+**CSS Variables:**
 ```css
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap');
+--font-heading: "Lexend", ui-sans-serif, system-ui, -apple-system, sans-serif;
+--font-body:    "Source Sans 3", ui-sans-serif, system-ui, -apple-system, sans-serif;
+--font-mono:    ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, monospace;
 ```
+
+### Type Scale
+
+| Element | Size | Font | Weight |
+|---------|------|------|--------|
+| Hero h1 | `text-5xl sm:text-6xl` | Lexend | 600 |
+| Page h1 | `text-4xl` | Lexend | 600 |
+| Section h2 | `text-2xl sm:text-3xl` | Lexend | 600 |
+| Eyebrow | `text-xs uppercase tracking-widest` | Source Sans 3 | 600 |
+| Body | `text-base` | Source Sans 3 | 400 |
+| Card title | `text-lg` | Lexend | 600 |
+| Meta/dates | `text-sm` | Source Sans 3 | 400 |
+| Tags | `text-xs` | Source Sans 3 | 500 |
 
 ### Spacing Variables
 
@@ -54,10 +75,9 @@
 
 | Level | Value | Usage |
 |-------|-------|-------|
-| `--shadow-sm` | `0 1px 2px rgba(0,0,0,0.05)` | Subtle lift |
-| `--shadow-md` | `0 4px 6px rgba(0,0,0,0.1)` | Cards, buttons |
-| `--shadow-lg` | `0 10px 15px rgba(0,0,0,0.1)` | Modals, dropdowns |
-| `--shadow-xl` | `0 20px 25px rgba(0,0,0,0.15)` | Hero images, featured cards |
+| `--shadow-sm` | `0 1px 2px rgba(0,0,0,0.05)` | Cards (default) |
+| `--shadow-md` | `0 4px 6px rgba(0,0,0,0.1)` | Cards on hover, buttons |
+| `--shadow-lg` | `0 10px 15px rgba(0,0,0,0.1)` | FAB, drawer |
 
 ---
 
@@ -71,27 +91,33 @@
   background: #2563EB;
   color: white;
   padding: 12px 24px;
-  border-radius: 8px;
+  border-radius: 9999px;
+  font-family: "Source Sans 3", sans-serif;
   font-weight: 600;
-  transition: all 200ms ease;
+  transition: background-color 200ms ease;
   cursor: pointer;
 }
 
 .btn-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  background: #1D4ED8;
 }
 
 /* Secondary Button */
 .btn-secondary {
   background: transparent;
-  color: #18181B;
-  border: 2px solid #18181B;
+  color: #52525B;
+  border: 1px solid #E4E4E7;
   padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
+  border-radius: 9999px;
+  font-family: "Source Sans 3", sans-serif;
+  font-weight: 500;
+  transition: color 200ms ease, border-color 200ms ease;
   cursor: pointer;
+}
+
+.btn-secondary:hover {
+  color: #09090B;
+  border-color: #52525B;
 }
 ```
 
@@ -99,16 +125,17 @@
 
 ```css
 .card {
-  background: #FAFAFA;
-  border-radius: 12px;
+  background: #FFFFFF;
+  border: 1px solid #E4E4E7;
+  border-radius: 1rem;
   padding: 24px;
-  box-shadow: var(--shadow-md);
-  transition: all 200ms ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: box-shadow 200ms ease, transform 200ms ease;
   cursor: pointer;
 }
 
 .card:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   transform: translateY(-2px);
 }
 ```
@@ -117,73 +144,63 @@
 
 ```css
 .input {
-  padding: 12px 16px;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 200ms ease;
-}
-
-.input:focus {
-  border-color: #18181B;
-  outline: none;
-  box-shadow: 0 0 0 3px #18181B20;
+  padding: 8px 12px;
+  border: 1px solid #E4E4E7;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-family: "Source Sans 3", sans-serif;
+  color: #52525B;
+  background: #F4F4F5;
+  cursor: not-allowed;
 }
 ```
 
-### Modals
+### Chat Sidebar
 
-```css
-.modal-overlay {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-}
-
-.modal {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: var(--shadow-xl);
-  max-width: 500px;
-  width: 90%;
-}
-```
+- Desktop (xl+, >= 1280px): `fixed right-0 top-16 bottom-0 w-[340px] bg-surface border-l border-border`
+- Mobile/tablet (< 1280px): FAB `fixed bottom-6 right-6 w-14 h-14 rounded-full bg-accent` + bottom drawer `fixed inset-x-0 bottom-0 top-1/2 z-50`
+- Drawer slides up 300ms ease-out (instant if prefers-reduced-motion)
+- Focus management: focus input on open, return to FAB on close
 
 ---
 
 ## Style Guidelines
 
-**Style:** Motion-Driven
+**Style:** Minimal & Direct
 
-**Keywords:** Animation-heavy, microinteractions, smooth transitions, scroll effects, parallax, entrance anim, page transitions
+**Keywords:** content-first, readable, clean, no-nonsense, fast-loading, subtle-hover, no-scroll-animations
 
-**Best For:** Portfolio sites, storytelling platforms, interactive experiences, entertainment apps, creative, SaaS
+**Best For:** Personal portfolios, content sites, engineering blogs, documentation
 
-**Key Effects:** Scroll anim (Intersection Observer), hover (300-400ms), entrance, parallax (3-5 layers), page transitions
+**Key Effects:** Subtle hover only (color/shadow, 200ms). No scroll-reveal, no entrance animations, no parallax.
 
 ### Page Pattern
 
-**Pattern Name:** Portfolio Grid
+**Pattern Name:** Content Grid
 
-- **Conversion Strategy:**  hover overlay info,  lightbox view, Visuals first. Filter by category. Fast loading essential.
-- **CTA Placement:** Project Card Hover + Footer Contact
-- **Section Order:** 1. Hero (Name/Role), 2. Project Grid (Masonry), 3. About/Philosophy, 4. Contact
+- **Conversion Strategy:** Content-first. Show the work immediately. No animation gates.
+- **CTA Placement:** Hero buttons + section "全部 →" links + chat sidebar
+- **Section Order:** 1. Hero (Name/Tagline), 2. Latest Blog (3 cards), 3. Latest Demos (3 cards), 4. All Products, 5. Footer
+
+### Navigation
+
+6 items: Blog, Demos, Products, Roadmap, About, Chat (with "soon" tag)
 
 ---
 
 ## Anti-Patterns (Do NOT Use)
 
-- ❌ Corporate templates
-- ❌ Generic layouts
-
-### Additional Forbidden Patterns
-
-- ❌ **Emojis as icons** — Use SVG icons (Heroicons, Lucide, Simple Icons)
-- ❌ **Missing cursor:pointer** — All clickable elements must have cursor:pointer
-- ❌ **Layout-shifting hovers** — Avoid scale transforms that shift layout
-- ❌ **Low contrast text** — Maintain 4.5:1 minimum contrast ratio
-- ❌ **Instant state changes** — Always use transitions (150-300ms)
-- ❌ **Invisible focus states** — Focus states must be visible for a11y
+- ❌ Handwriting fonts (Caveat, Quicksand, Comic Sans)
+- ❌ Scroll-reveal animations (data-reveal, IntersectionObserver)
+- ❌ Scale transforms on hover (layout shift)
+- ❌ Animations longer than 300ms
+- ❌ Emojis as icons — Use SVG icons (inline SVG, Heroicons, Lucide)
+- ❌ Missing cursor:pointer — All clickable elements must have cursor:pointer
+- ❌ Low contrast text — Maintain 4.5:1 minimum contrast ratio
+- ❌ Invisible focus states — Focus states must be visible for a11y
+- ❌ Tailwind config files — Tailwind v4 is inline in global.css
+- ❌ Raw `/blog` hrefs — Always `${BASE}blog`
+- ❌ Fabricated content — about.json is intentionally empty
 
 ---
 
@@ -191,13 +208,16 @@
 
 Before delivering any UI code, verify:
 
-- [ ] No emojis used as icons (use SVG instead)
-- [ ] All icons from consistent icon set (Heroicons/Lucide)
+- [ ] No handwriting fonts (Lexend + Source Sans 3 only)
+- [ ] No scroll-reveal animations (no data-reveal attributes)
+- [ ] No emojis used as icons (use inline SVG instead)
 - [ ] `cursor-pointer` on all clickable elements
-- [ ] Hover states with smooth transitions (150-300ms)
+- [ ] Hover states with subtle transitions (200ms, color/shadow only)
 - [ ] Light mode: text contrast 4.5:1 minimum
 - [ ] Focus states visible for keyboard navigation
-- [ ] `prefers-reduced-motion` respected
-- [ ] Responsive: 375px, 768px, 1024px, 1440px
-- [ ] No content hidden behind fixed navbars
+- [ ] `prefers-reduced-motion` respected (chat drawer appears instantly)
+- [ ] Responsive: 375px (FAB+drawer), 768px (FAB+drawer), 1024px (FAB+drawer), 1280px (sidebar appears), 1440px (full desktop)
+- [ ] No content hidden behind fixed elements
 - [ ] No horizontal scroll on mobile
+- [ ] All hrefs use `${BASE}` prefix
+- [ ] Drafts filtered at render time (`.filter(p => !p.data.draft)`)

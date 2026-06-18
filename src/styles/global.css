@@ -13,9 +13,11 @@
   --color-border:     #E4E4E7;   /* card/divider borders (zinc-200) */
   --color-dark:       #18181B;   /* dark surfaces — nav, footer bg, code blocks */
 
-  /* Typography: handwritten Caveat for headings, rounded Quicksand for body */
-  --font-script: "Caveat", "Bradley Hand", "Comic Sans MS", cursive;
-  --font-sans:   "Quicksand", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Typography: Lexend for headings (readability-first), Source Sans 3 for body/UI.
+     "Corporate Trust" pairing per ui-ux-pro-max — content-focused, no handwriting. */
+  --font-heading: "Lexend", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-body:    "Source Sans 3", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono:    ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
 }
 
 @layer base {
@@ -43,7 +45,7 @@
 
   body {
     color: var(--color-text);
-    font-family: var(--font-sans);
+    font-family: var(--font-body);
     font-size: 1rem;
     line-height: 1.7;
     min-height: 100vh;
@@ -54,25 +56,7 @@
     color: #FFFFFF;
   }
 
-  /* Scroll reveal — gates by prefers-reduced-motion below.
-     Any [data-reveal] element starts hidden + offset, then JS toggles
-     .revealed when it enters the viewport. */
-  [data-reveal] {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-    will-change: opacity, transform;
-  }
-  [data-reveal].revealed {
-    opacity: 1;
-    transform: translateY(0);
-  }
   @media (prefers-reduced-motion: reduce) {
-    [data-reveal] {
-      opacity: 1;
-      transform: none;
-      transition: none;
-    }
     html { scroll-behavior: auto; }
   }
 
@@ -83,7 +67,7 @@
     color: var(--color-text);
     line-height: 1.8;
     font-size: 1rem;
-    font-family: var(--font-sans);
+    font-family: var(--font-body);
   }
 
   .prose-content h1,
@@ -91,18 +75,18 @@
   .prose-content h3,
   .prose-content h4 {
     color: var(--color-text);
-    font-family: var(--font-script);
-    font-weight: 700;
+    font-family: var(--font-heading);
+    font-weight: 600;
     margin-top: 1.8em;
     margin-bottom: 0.6em;
-    line-height: 1.2;
-    letter-spacing: -0.005em;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
   }
 
-  .prose-content h1 { font-size: 2.25rem; }
+  .prose-content h1 { font-size: 2.25rem; font-weight: 600; }
   .prose-content h2 { font-size: 1.875rem; }
-  .prose-content h3 { font-size: 1.5rem; font-weight: 600; }
-  .prose-content h4 { font-size: 1.25rem; font-weight: 600; }
+  .prose-content h3 { font-size: 1.5rem; }
+  .prose-content h4 { font-size: 1.25rem; }
 
   .prose-content p { margin-bottom: 1.1em; }
 
@@ -124,7 +108,7 @@
     padding: 0.15em 0.45em;
     border-radius: 0.375rem;
     font-size: 0.875em;
-    font-family: var(--font-sans);
+    font-family: var(--font-mono);
     font-weight: 500;
     border: 1px solid var(--color-border);
   }
@@ -138,7 +122,7 @@
     overflow-x: auto;
     margin-bottom: 1.2em;
     line-height: 1.65;
-    font-family: var(--font-sans);
+    font-family: var(--font-mono);
   }
 
   .prose-content pre code {

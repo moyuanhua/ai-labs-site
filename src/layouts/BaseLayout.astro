@@ -5,12 +5,15 @@ interface Props {
 }
 const { title, description = 'HTML-first content publishing' } = Astro.props;
 import '../styles/global.css';
+import ChatSidebar from '../components/ChatSidebar.astro';
 const BASE = import.meta.env.BASE_URL;
 const navLinks = [
   { href: `${BASE}blog`,     label: 'Blog' },
   { href: `${BASE}demos`,    label: 'Demos' },
   { href: `${BASE}products`, label: 'Products' },
   { href: `${BASE}roadmap`,  label: 'Roadmap' },
+  { href: `${BASE}about`,    label: 'About' },
+  { href: `${BASE}chat`,     label: 'Chat', soon: true },
 ];
 const currentPath = Astro.url.pathname;
 ---
@@ -27,14 +30,14 @@ const currentPath = Astro.url.pathname;
   <link rel="icon" href="/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-bg text-text min-h-screen flex flex-col antialiased font-sans">
+<body class="bg-bg text-text min-h-screen flex flex-col antialiased font-body">
   <header class="sticky top-0 bg-bg/90 backdrop-blur-sm border-b border-border z-50">
     <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4 flex-wrap">
       <a
         href={BASE}
-        class="font-script text-2xl font-bold text-text hover:text-accent transition-colors duration-200 cursor-pointer"
+        class="font-heading text-2xl font-bold text-text hover:text-accent transition-colors duration-200 cursor-pointer"
       >
         ai-labs
       </a>
@@ -45,13 +48,16 @@ const currentPath = Astro.url.pathname;
             <li class="flex items-center">
               <a
                 href={link.href}
-                class={`px-2.5 py-1 text-sm font-medium font-sans transition-colors duration-200 cursor-pointer ${
+                class={`px-2.5 py-1 text-sm font-medium font-body transition-colors duration-200 cursor-pointer ${
                   isActive
                     ? 'text-text font-semibold border-b-2 border-accent'
                     : 'text-text-muted hover:text-accent'
                 }`}
               >
                 {link.label}
+                {link.soon && (
+                  <span class="ml-1.5 text-[0.65rem] uppercase tracking-wider text-accent">soon</span>
+                )}
               </a>
             </li>
           );
@@ -60,43 +66,30 @@ const currentPath = Astro.url.pathname;
     </nav>
   </header>
 
-  <main class="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-    <slot />
-  </main>
+  <div class="xl:pr-[360px] flex-1 flex flex-col">
+    <main class="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      <slot />
+    </main>
 
-  <footer class="bg-dark text-white/70 py-12 mt-20">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4">
-      <p class="text-white text-sm sm:text-base">Built with Astro · HTML-first · AI-ready</p>
-      <ul class="flex items-center gap-3 text-xs uppercase tracking-widest text-white/60 font-sans">
-        <li><a href={`${BASE}blog`}     class="hover:text-white transition-colors duration-200 cursor-pointer">Blog</a></li>
-        <li aria-hidden="true">·</li>
-        <li><a href={`${BASE}demos`}    class="hover:text-white transition-colors duration-200 cursor-pointer">Demos</a></li>
-        <li aria-hidden="true">·</li>
-        <li><a href={`${BASE}products`} class="hover:text-white transition-colors duration-200 cursor-pointer">Products</a></li>
-        <li aria-hidden="true">·</li>
-        <li><a href={`${BASE}roadmap`}  class="hover:text-white transition-colors duration-200 cursor-pointer">Roadmap</a></li>
-      </ul>
-      <p class="text-white/50 text-xs font-sans">&copy; 2024 moyuanhua</p>
-    </div>
-  </footer>
+    <footer class="bg-dark text-white/70 py-12 mt-20">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4">
+        <p class="text-white text-sm sm:text-base font-body">Built with Astro · HTML-first · AI-ready</p>
+        <ul class="flex items-center gap-3 text-xs uppercase tracking-widest text-white/60 font-body">
+          <li><a href={`${BASE}blog`}     class="hover:text-white transition-colors duration-200 cursor-pointer">Blog</a></li>
+          <li aria-hidden="true">·</li>
+          <li><a href={`${BASE}demos`}    class="hover:text-white transition-colors duration-200 cursor-pointer">Demos</a></li>
+          <li aria-hidden="true">·</li>
+          <li><a href={`${BASE}products`} class="hover:text-white transition-colors duration-200 cursor-pointer">Products</a></li>
+          <li aria-hidden="true">·</li>
+          <li><a href={`${BASE}roadmap`}  class="hover:text-white transition-colors duration-200 cursor-pointer">Roadmap</a></li>
+          <li aria-hidden="true">·</li>
+          <li><a href={`${BASE}about`}    class="hover:text-white transition-colors duration-200 cursor-pointer">About</a></li>
+        </ul>
+        <p class="text-white/50 text-xs font-body">&copy; 2024 moyuanhua</p>
+      </div>
+    </footer>
+  </div>
 
-  <script>
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('revealed');
-              observer.unobserve(entry.target);
-            }
-          }
-        },
-        { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
-      );
-      document.querySelectorAll('[data-reveal]').forEach(el => observer.observe(el));
-    } else {
-      document.querySelectorAll('[data-reveal]').forEach(el => el.classList.add('revealed'));
-    }
-  </script>
+  <ChatSidebar />
 </body>
 </html>
