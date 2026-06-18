@@ -9,31 +9,65 @@ const BASE = import.meta.env.BASE_URL;
 {variant === 'hero' && (
   <div
     transition:name="chat-layer"
-    class="chat-hero max-w-2xl mx-auto flex flex-col min-h-[320px] bg-zinc-950/85 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden"
-    style="box-shadow: var(--chat-glow);"
+    class="chat-hero chat-terminal relative flex flex-col min-h-screen bg-zinc-950 overflow-hidden"
   >
-    <div class="px-6 pt-5 pb-3">
-      <p class="font-heading text-xl text-zinc-100 font-medium">Hi, I'm moyuanhua's AI.</p>
-      <p class="font-body text-sm text-zinc-400 mt-1">Ask me about my work, demos, or writing.</p>
+    {/* Tech grid background */}
+    <div class="chat-grid-bg absolute inset-0 pointer-events-none" aria-hidden="true"></div>
+
+    {/* HUD corner markers */}
+    <span class="chat-hud-corner top-4 left-4 border-t-2 border-l-2" aria-hidden="true"></span>
+    <span class="chat-hud-corner top-4 right-4 border-t-2 border-r-2" aria-hidden="true"></span>
+    <span class="chat-hud-corner bottom-4 left-4 border-b-2 border-l-2" aria-hidden="true"></span>
+    <span class="chat-hud-corner bottom-4 right-4 border-b-2 border-r-2" aria-hidden="true"></span>
+
+    {/* Top status bar */}
+    <div class="relative shrink-0 px-6 sm:px-10 pt-6 pb-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="font-heading text-2xl sm:text-3xl text-zinc-100 font-semibold tracking-tight">moyuanhua</span>
+        <span class="font-mono text-[0.65rem] uppercase tracking-widest text-blue-400/80 hidden sm:inline">// AI TERMINAL</span>
+      </div>
+      <div class="flex items-center gap-2 font-mono text-[0.65rem] uppercase tracking-widest text-zinc-500">
+        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full" style="box-shadow: 0 0 6px rgba(52,211,153,0.8);"></span>
+        <span>SYSTEM ONLINE</span>
+      </div>
     </div>
 
-    <div data-chat-messages class="flex-1 min-h-[180px] overflow-y-auto px-6 space-y-3"></div>
+    {/* Greeting + messages */}
+    <div class="relative flex-1 flex flex-col justify-center max-w-3xl mx-auto w-full px-6 sm:px-10 py-8">
+      <div class="mb-6">
+        <p class="font-heading text-xl sm:text-2xl text-zinc-100 font-medium mb-2">
+          Hi, I'm moyuanhua's AI.
+        </p>
+        <p class="font-body text-sm sm:text-base text-zinc-400 leading-relaxed max-w-lg">
+          Ask me about my work, demos, or writing. I'm trained on everything on this site.
+        </p>
+      </div>
 
-    <div class="p-4 border-t border-white/10 flex gap-2">
-      <input
-        data-chat-input
-        type="text"
-        placeholder="问我任何问题…"
-        class="flex-1 bg-zinc-900/50 border border-zinc-700 rounded-xl px-4 py-3 text-zinc-100 placeholder-zinc-500 text-sm font-body focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
-      />
-      <button
-        data-chat-send
-        type="button"
-        class="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-4 py-3 text-sm font-body font-medium transition-colors cursor-pointer"
-      >
-        发送
-      </button>
+      <div data-chat-messages class="flex-1 min-h-[160px] max-h-[40vh] overflow-y-auto space-y-3 pr-2"></div>
     </div>
+
+    {/* Bottom input bar */}
+    <div class="relative shrink-0 border-t border-white/5 bg-zinc-950/50">
+      <div class="max-w-3xl mx-auto w-full px-6 sm:px-10 py-5 flex gap-3 items-center">
+        <span class="font-mono text-sm text-blue-500 select-none shrink-0">&gt;</span>
+        <input
+          data-chat-input
+          type="text"
+          placeholder="ask me anything…"
+          class="flex-1 bg-transparent border-none text-zinc-100 placeholder-zinc-600 text-sm sm:text-base font-body focus:outline-none"
+        />
+        <button
+          data-chat-send
+          type="button"
+          class="shrink-0 font-mono text-xs uppercase tracking-widest text-blue-400 hover:text-blue-300 border border-blue-500/30 hover:border-blue-400/50 rounded-lg px-4 py-2 transition-colors cursor-pointer"
+        >
+          Send ↵
+        </button>
+      </div>
+    </div>
+
+    {/* Bottom gradient transition to light content */}
+    <div class="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-b from-transparent to-zinc-950 pointer-events-none" aria-hidden="true"></div>
   </div>
 )}
 
@@ -60,45 +94,59 @@ const BASE = import.meta.env.BASE_URL;
 {variant === 'fullscreen' && (
   <div
     transition:name="chat-layer"
-    class="chat-fullscreen fixed inset-0 z-50 bg-zinc-950/95 backdrop-blur-2xl flex flex-col"
+    class="chat-fullscreen chat-terminal relative fixed inset-0 z-50 bg-zinc-950/97 backdrop-blur-2xl flex flex-col overflow-hidden"
   >
-    <div class="max-w-3xl mx-auto w-full h-full flex flex-col">
-      <header class="h-16 shrink-0 border-b border-white/10 px-6 flex items-center justify-between">
-        <div class="flex items-center">
+    {/* Tech grid background */}
+    <div class="chat-grid-bg absolute inset-0 pointer-events-none" aria-hidden="true"></div>
+
+    {/* HUD corner markers */}
+    <span class="chat-hud-corner top-4 left-4 border-t-2 border-l-2" aria-hidden="true"></span>
+    <span class="chat-hud-corner top-4 right-4 border-t-2 border-r-2" aria-hidden="true"></span>
+    <span class="chat-hud-corner bottom-4 left-4 border-b-2 border-l-2" aria-hidden="true"></span>
+    <span class="chat-hud-corner bottom-4 right-4 border-b-2 border-r-2" aria-hidden="true"></span>
+
+    <div class="relative flex-1 flex flex-col max-w-3xl mx-auto w-full">
+      <header class="shrink-0 px-6 sm:px-10 pt-6 pb-4 flex items-center justify-between border-b border-white/5">
+        <div class="flex items-center gap-3">
           <span class="font-heading text-lg text-zinc-100 font-medium">moyuanhua's AI</span>
-          <span class="w-2 h-2 bg-emerald-400 rounded-full ml-2" aria-hidden="true"></span>
+          <span class="w-2 h-2 bg-emerald-400 rounded-full" style="box-shadow: 0 0 6px rgba(52,211,153,0.8);" aria-hidden="true"></span>
         </div>
-        <button
-          type="button"
-          onclick="history.back()"
-          class="text-zinc-400 hover:text-zinc-100 transition-colors cursor-pointer"
-          aria-label="Close chat"
-        >
-          <svg
-            width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+        <div class="flex items-center gap-4">
+          <span class="font-mono text-[0.65rem] uppercase tracking-widest text-zinc-500 hidden sm:inline">SYSTEM ONLINE</span>
+          <button
+            type="button"
+            onclick="history.back()"
+            class="text-zinc-500 hover:text-zinc-100 transition-colors cursor-pointer"
+            aria-label="Close chat"
           >
-            <path d="M18 6L6 18M6 6l12 12" />
-          </svg>
-        </button>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </header>
 
-      <div data-chat-messages class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+      <div data-chat-messages class="relative flex-1 overflow-y-auto px-6 sm:px-10 py-6 space-y-4"></div>
 
-      <div class="p-6 shrink-0 border-t border-white/10 flex gap-3">
-        <input
-          data-chat-input
-          type="text"
-          placeholder="问我任何问题…"
-          class="flex-1 bg-zinc-900/50 border border-zinc-700 rounded-xl px-4 py-3 text-zinc-100 placeholder-zinc-500 text-sm font-body focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
-        />
-        <button
-          data-chat-send
-          type="button"
-          class="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-6 py-3 text-sm font-body font-medium transition-colors cursor-pointer"
-        >
-          发送
-        </button>
+      <div class="relative shrink-0 border-t border-white/5 bg-zinc-950/50">
+        <div class="px-6 sm:px-10 py-5 flex gap-3 items-center">
+          <span class="font-mono text-sm text-blue-500 select-none shrink-0">&gt;</span>
+          <input
+            data-chat-input
+            type="text"
+            placeholder="ask me anything…"
+            class="flex-1 bg-transparent border-none text-zinc-100 placeholder-zinc-600 text-sm sm:text-base font-body focus:outline-none"
+          />
+          <button
+            data-chat-send
+            type="button"
+            class="shrink-0 font-mono text-xs uppercase tracking-widest text-blue-400 hover:text-blue-300 border border-blue-500/30 hover:border-blue-400/50 rounded-lg px-4 py-2 transition-colors cursor-pointer"
+          >
+            Send ↵
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -119,15 +167,15 @@ const BASE = import.meta.env.BASE_URL;
   function createBubble(role: 'user' | 'ai', text: string): HTMLElement {
     const div = document.createElement('div');
     div.className = role === 'user'
-      ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm p-3 text-sm ml-auto max-w-[80%] chat-bubble-enter font-body'
-      : 'bg-zinc-800/60 border border-zinc-700 rounded-2xl rounded-tl-sm p-3 text-sm text-zinc-100 max-w-[85%] chat-bubble-enter font-body';
+      ? 'bg-blue-600/90 text-white rounded-lg rounded-tr-sm p-3 text-sm ml-auto max-w-[80%] chat-bubble-enter font-body'
+      : 'bg-zinc-900/60 border border-zinc-800 rounded-lg rounded-tl-sm p-3 text-sm text-zinc-200 max-w-[85%] chat-bubble-enter font-body';
     div.textContent = text;
     return div;
   }
 
   function createTypingIndicator(): HTMLElement {
     const div = document.createElement('div');
-    div.className = 'bg-zinc-800/60 border border-zinc-700 rounded-2xl rounded-tl-sm p-3 inline-flex gap-1';
+    div.className = 'bg-zinc-900/60 border border-zinc-800 rounded-lg rounded-tl-sm p-3 inline-flex gap-1';
     div.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
     return div;
   }
