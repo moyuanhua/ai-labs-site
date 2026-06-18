@@ -34,18 +34,18 @@
     --color-border:     #E4E4E7;
     --color-dark:       #18181B;
 
-    /* Chat layer — dark glass, tech feel. NOT in @theme (no Tailwind utilities
+    /* Chat layer — minimal light, clean. NOT in @theme (no Tailwind utilities
        generated); referenced via var() in ChatLayer.astro and chat CSS below. */
-    --chat-bg: rgba(9, 9, 11, 0.85);
-    --chat-border: rgba(255, 255, 255, 0.1);
-    --chat-glow: 0 0 40px rgba(37, 99, 235, 0.35);
-    --chat-text: #F4F4F5;
-    --chat-text-muted: #A1A1AA;
-    --chat-accent: #3B82F6;
-    --chat-accent-2: #06B6D4;
-    --chat-bubble-ai-bg: rgba(63, 63, 70, 0.6);
-    --chat-bubble-ai-border: rgba(82, 82, 91, 0.5);
-    --chat-bubble-user-bg: #2563EB;
+    --chat-bg: #F8FAFC;
+    --chat-border: #E2E8F0;
+    --chat-glow: none;
+    --chat-text: #0F172A;
+    --chat-text-muted: #64748B;
+    --chat-accent: #6366F1;
+    --chat-accent-2: #818CF8;
+    --chat-bubble-ai-bg: #FFFFFF;
+    --chat-bubble-ai-border: #E2E8F0;
+    --chat-bubble-user-bg: #6366F1;
   }
 
   html {
@@ -206,61 +206,10 @@
   .prose-content em { color: var(--color-text); font-style: italic; }
 }
 
-/* ─── Chat layer (dark glass terminal) ────────────────────────────────────
+/* ─── Chat layer (minimal light) ──────────────────────────────────────────
    Three variants: hero (full-screen homepage), dock (floating button),
-   fullscreen (/chat page). Shared terminal aesthetic: grid bg, HUD corners,
-   monospace status, blue accent glow. */
-
-/* Tech grid background — static, no animation */
-.chat-grid-bg {
-  background-image:
-    linear-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(59, 130, 246, 0.04) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 80% 70% at center, black 30%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 70% at center, black 30%, transparent 100%);
-}
-
-/* HUD corner markers — L-shaped brackets at viewport corners */
-.chat-hud-corner {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  border-color: rgba(59, 130, 246, 0.4);
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* Terminal container — shared by hero + fullscreen */
-.chat-terminal {
-  color: var(--chat-text, #F4F4F5);
-}
-
-/* Subtle scanline overlay on terminal bg (static, not animated) */
-.chat-terminal::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 2px,
-    rgba(255, 255, 255, 0.012) 2px,
-    rgba(255, 255, 255, 0.012) 3px
-  );
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Blue glow border for the terminal feel */
-.chat-terminal::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  box-shadow: inset 0 0 80px rgba(37, 99, 235, 0.08);
-  pointer-events: none;
-  z-index: 0;
-}
+   fullscreen (/chat page). Minimal light aesthetic: clean borders, indigo
+   accent, soft slate background. */
 
 /* Bubble entrance + typing indicator */
 .chat-bubble-enter {
@@ -272,7 +221,7 @@
 }
 
 .typing-dot {
-  width: 6px; height: 6px; border-radius: 50%; background: var(--chat-text-muted, #A1A1AA);
+  width: 6px; height: 6px; border-radius: 50%; background: var(--chat-text-muted, #64748B);
   animation: typing-pulse 1.4s ease-in-out infinite;
 }
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
@@ -285,8 +234,8 @@
 /* Custom scrollbar for chat message areas */
 [data-chat-messages]::-webkit-scrollbar { width: 4px; }
 [data-chat-messages]::-webkit-scrollbar-track { background: transparent; }
-[data-chat-messages]::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.2); border-radius: 2px; }
-[data-chat-messages]::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.4); }
+[data-chat-messages]::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.2); border-radius: 2px; }
+[data-chat-messages]::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.4); }
 
 @media (prefers-reduced-motion: reduce) {
   .chat-bubble-enter { animation: none; }
