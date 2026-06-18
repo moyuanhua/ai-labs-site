@@ -1,65 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ChatLayer from '../components/ChatLayer.astro';
 ---
 
-<BaseLayout title="Talk — ai-labs" description="将来可以和我聊天的 AI">
-  <article class="max-w-3xl mx-auto py-12">
-    <header class="text-center py-12">
-      <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-4">
-        talk · soon
-      </p>
-      <h1 class="font-heading text-4xl font-semibold text-text mb-4 tracking-tight">
-        Talk to me
-      </h1>
-      <p class="font-body text-base sm:text-lg text-text-muted leading-relaxed max-w-xl mx-auto">
-        将来这里可以在线和我聊天——AI 训练自本站内容与我的简历。
-      </p>
-      <div class="mt-6">
-        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/5 text-accent border border-accent/20 font-body text-xs font-medium uppercase tracking-wider">
-          <span class="w-1.5 h-1.5 rounded-full bg-accent" aria-hidden="true"></span>
-          Coming soon
-        </span>
-      </div>
-    </header>
-
-    <div class="mt-12 space-y-4">
-      <textarea
-        disabled
-        rows="4"
-        placeholder="等上线后，你可以在这里问我任何问题…"
-        class="w-full max-w-2xl mx-auto block bg-surface border border-border rounded-xl p-4 font-body text-sm text-text-muted resize-none cursor-not-allowed focus:outline-none"
-      ></textarea>
-      <div class="max-w-2xl mx-auto flex items-center justify-between gap-4 flex-wrap">
-        <p class="font-body text-xs text-text-faint">输入框已禁用。上线后才能用。</p>
-        <button
-          type="button"
-          disabled
-          class="bg-accent/50 text-white px-5 py-2.5 rounded-full font-body font-semibold text-sm cursor-not-allowed"
-        >
-          发送
-        </button>
-      </div>
-    </div>
-
-    <section class="mt-20 max-w-2xl mx-auto">
-      <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-4">
-        思路 · how it works
-      </p>
-      <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-text mb-6">训练逻辑</h2>
-      <ul class="space-y-4 font-body text-sm text-text-muted leading-relaxed">
-        <li class="flex gap-3">
-          <span class="text-accent shrink-0" aria-hidden="true">·</span>
-          <span><span class="text-text font-semibold">内容训练</span>——模型读取本站所有文章、Demo、产品页与 Roadmap，建立关于我在做什么、怎么思考的 baseline。</span>
-        </li>
-        <li class="flex gap-3">
-          <span class="text-accent shrink-0" aria-hidden="true">·</span>
-          <span><span class="text-text font-semibold">人格训练</span>——用我的简历与过往作品塑造语气，回复带我的口吻，而不是通用 AI 助手。</span>
-        </li>
-        <li class="flex gap-3">
-          <span class="text-accent shrink-0" aria-hidden="true">·</span>
-          <span><span class="text-text font-semibold">边界透明</span>——模型在不确定时会承认"我不知道"，引用不到的来源会标记，而不是硬编一个答案。</span>
-        </li>
-      </ul>
-    </section>
-  </article>
+<BaseLayout title="Talk — ai-labs" description="和 moyuanhua 的 AI 聊天" chatVariant="fullscreen">
+  <ChatLayer variant="fullscreen" />
 </BaseLayout>

@@ -13,10 +13,10 @@
   --color-border:     #E4E4E7;   /* card/divider borders (zinc-200) */
   --color-dark:       #18181B;   /* dark surfaces — nav, footer bg, code blocks */
 
-  /* Typography: Lexend for headings (readability-first), Source Sans 3 for body/UI.
-     "Corporate Trust" pairing per ui-ux-pro-max — content-focused, no handwriting. */
-  --font-heading: "Lexend", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-body:    "Source Sans 3", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Typography: Space Grotesk for headings (tech feel), DM Sans for body/UI.
+     "Conversational Terminal" pairing — geometric headings + neutral body. */
+  --font-heading: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-body:    "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono:    ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
 }
 
@@ -33,6 +33,19 @@
     --color-accent-2:   #1D4ED8;
     --color-border:     #E4E4E7;
     --color-dark:       #18181B;
+
+    /* Chat layer — dark glass, tech feel. NOT in @theme (no Tailwind utilities
+       generated); referenced via var() in ChatLayer.astro and chat CSS below. */
+    --chat-bg: rgba(9, 9, 11, 0.85);
+    --chat-border: rgba(255, 255, 255, 0.1);
+    --chat-glow: 0 0 40px rgba(37, 99, 235, 0.35);
+    --chat-text: #F4F4F5;
+    --chat-text-muted: #A1A1AA;
+    --chat-accent: #3B82F6;
+    --chat-accent-2: #06B6D4;
+    --chat-bubble-ai-bg: rgba(63, 63, 70, 0.6);
+    --chat-bubble-ai-border: rgba(82, 82, 91, 0.5);
+    --chat-bubble-user-bg: #2563EB;
   }
 
   html {
@@ -191,4 +204,32 @@
 
   .prose-content strong { color: var(--color-text); font-weight: 600; }
   .prose-content em { color: var(--color-text); font-style: italic; }
+}
+
+/* ─── Chat layer (dark glass) ─────────────────────────────────────────────
+   Bubble entrance + typing indicator. Used by ChatLayer.astro (all 3 variants).
+   Durations kept in the 200–400ms / ease-out band per design spec. */
+
+.chat-bubble-enter {
+  animation: chat-bubble-in 200ms ease-out;
+}
+@keyframes chat-bubble-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.typing-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--chat-text-muted);
+  animation: typing-pulse 1.4s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing-pulse {
+  0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
+  30%           { opacity: 1;   transform: scale(1.2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-bubble-enter { animation: none; }
+  .typing-dot        { animation: none; opacity: 0.6; }
 }

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ContentCard from '../components/ContentCard.astro';
+import ChatLayer from '../components/ChatLayer.astro';
 import { getCollection } from 'astro:content';
 
 const BASE = import.meta.env.BASE_URL;
@@ -26,38 +27,26 @@ const statusBadge = (status: string) => {
 };
 ---
 
-<BaseLayout title="ai-labs" description="moyuanhua — personal portfolio of writing, demos, and AI experiments">
+<BaseLayout title="ai-labs" description="moyuanhua — personal portfolio of writing, demos, and AI experiments" chatVariant="hero">
 
-  <section class="py-24 md:py-32 text-center">
-    <p class="text-xs sm:text-sm uppercase tracking-widest font-body font-medium text-text-muted mb-4">
-      Personal · Portfolio
+  <section class="pt-12 pb-6 text-center">
+    <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-3">
+      Personal · AI · Content
     </p>
-    <h1 class="font-heading text-5xl sm:text-6xl font-semibold text-text mb-6 tracking-tight">
+    <h1 class="font-heading text-4xl sm:text-5xl font-semibold text-text tracking-tight">
       moyuanhua
     </h1>
-    <p class="font-body text-lg sm:text-xl text-text-muted max-w-xl mx-auto leading-relaxed">
-      内容展示 · 创意实验 · AI 对话<br/>
-      写我所想，做我所玩，聊我所信。
-    </p>
-    <div class="flex items-center justify-center gap-3 mt-10 flex-wrap">
-      <a
-        href={`${BASE}blog`}
-        class="px-6 py-3 bg-accent text-white hover:bg-accent-2 rounded-full font-body font-semibold shadow-md transition-colors duration-200 cursor-pointer"
-      >
-        查看作品
-      </a>
-      <a
-        href={`${BASE}roadmap`}
-        class="px-6 py-3 border border-border text-text-muted hover:text-text hover:border-text-muted rounded-full font-body font-medium transition-colors duration-200 cursor-pointer"
-      >
-        了解更多
-      </a>
-    </div>
+  </section>
+
+  <ChatLayer variant="hero" />
+
+  <section class="mt-16 mb-8 text-center">
+    <p class="text-text-muted text-sm font-body">— or browse the content —</p>
   </section>
 
   {allPosts.length > 0 && (
     <section class="mb-16">
-      <header class="mb-8 flex items-end justify-between gap-4 flex-wrap">
+      <header class="mb-6 flex items-end justify-between gap-4 flex-wrap">
         <div>
           <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-2">
             blog · {String(allPosts.length).padStart(2, '0')}
@@ -71,7 +60,7 @@ const statusBadge = (status: string) => {
           全部 →
         </a>
       </header>
-      <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {allPosts.map(post => (
           <ContentCard
             href={`${BASE}blog/${post.id}`}
@@ -87,7 +76,7 @@ const statusBadge = (status: string) => {
 
   {allDemos.length > 0 && (
     <section class="mb-16">
-      <header class="mb-8 flex items-end justify-between gap-4 flex-wrap">
+      <header class="mb-6 flex items-end justify-between gap-4 flex-wrap">
         <div>
           <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-2">
             demos · {String(allDemos.length).padStart(2, '0')}
@@ -101,7 +90,7 @@ const statusBadge = (status: string) => {
           全部 →
         </a>
       </header>
-      <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {allDemos.map(demo => (
           <ContentCard
             href={`${BASE}demos/${demo.id}`}
@@ -117,7 +106,7 @@ const statusBadge = (status: string) => {
 
   {allProducts.length > 0 && (
     <section class="mb-16">
-      <header class="mb-8 flex items-end justify-between gap-4 flex-wrap">
+      <header class="mb-6 flex items-end justify-between gap-4 flex-wrap">
         <div>
           <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-2">
             products · {String(allProducts.length).padStart(2, '0')}
@@ -131,7 +120,7 @@ const statusBadge = (status: string) => {
           全部 →
         </a>
       </header>
-      <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {allProducts.map(product => (
           <ContentCard
             href={`${BASE}products/${product.id}`}
