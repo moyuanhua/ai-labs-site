@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
-  const demos = await getCollection('demos');
+  const demos = (await getCollection('posts')).filter(p => p.data.type === 'demo');
   return demos
     .filter(p => !p.data.draft)
     .map(demo => ({ params: { slug: demo.id }, props: { demo } }));

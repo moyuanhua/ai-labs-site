@@ -1,6 +1,7 @@
 ---
 title: "为什么用 HTML 发布内容而不是 Markdown"
 date: 2024-06-01
+type: blog
 description: "HTML 是 Markdown 的超集——更丰富的表现力、交互能力，以及 AI 时代下无摩擦的生成工作流。"
 tags: [html, publishing, ai]
 draft: false

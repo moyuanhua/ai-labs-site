@@ -1,6 +1,7 @@
 ---
 title: "粒子引力场"
 date: 2024-06-01
+type: demo
 description: "用 Canvas 实现粒子间的引力模拟——鼠标移动影响引力中心，纯 HTML + 原生 JS，零依赖。"
 tags: [canvas, animation, physics, javascript]
 draft: false
