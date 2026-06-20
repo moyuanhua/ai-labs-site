@@ -6,26 +6,15 @@ import { getCollection } from 'astro:content';
 
 const BASE = import.meta.env.BASE_URL;
 
-const allPosts = (await getCollection('posts')).filter(p => !p.data.draft);
-
-const allBlog = allPosts
-  .filter(p => p.data.type === 'blog')
+const allPosts = (await getCollection('posts'))
+  .filter(p => !p.data.draft)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 3);
+  .slice(0, 6);
 
-const allDemos = allPosts
-  .filter(p => p.data.type === 'demo')
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 3);
-
-const allProducts = allPosts
-  .filter(p => p.data.type === 'product')
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-
-const statusBadge = (status: string) => {
-  if (status === 'live') return { label: 'Live', color: 'green' as const };
-  if (status === 'beta') return { label: 'Beta', color: 'yellow' as const };
-  return { label: 'Coming Soon', color: 'slate' as const };
+const typeBadge = {
+  blog:    { label: 'Blog',    color: 'slate'  as const },
+  demo:    { label: 'Demo',    color: 'green'  as const },
+  product: { label: 'Product', color: 'yellow' as const },
 };
 ---
 
@@ -42,12 +31,12 @@ const statusBadge = (status: string) => {
       <header class="mb-6 flex items-end justify-between gap-4 flex-wrap">
         <div>
           <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-2">
-            blog · {String(allPosts.length).padStart(2, '0')}
+            posts · {String(allPosts.length).padStart(2, '0')}
           </p>
-          <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-text">最新文章</h2>
+          <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-text">最新内容</h2>
         </div>
         <a
-          href={`${BASE}blog`}
+          href={`${BASE}posts`}
           class="font-body text-sm font-medium text-accent hover:text-accent-2 transition-colors duration-200 cursor-pointer"
         >
           全部 →
@@ -56,71 +45,12 @@ const statusBadge = (status: string) => {
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {allPosts.map(post => (
           <ContentCard
-            href={`${BASE}blog/${post.id}`}
+            href={`${BASE}posts/${post.id}`}
             title={post.data.title}
             date={post.data.date}
             description={post.data.description}
             tags={post.data.tags}
-          />
-        ))}
-      </div>
-    </section>
-  )}
-
-  {allDemos.length > 0 && (
-    <section class="mb-16">
-      <header class="mb-6 flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-2">
-            demos · {String(allDemos.length).padStart(2, '0')}
-          </p>
-          <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-text">交互 Demo</h2>
-        </div>
-        <a
-          href={`${BASE}demos`}
-          class="font-body text-sm font-medium text-accent hover:text-accent-2 transition-colors duration-200 cursor-pointer"
-        >
-          全部 →
-        </a>
-      </header>
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {allDemos.map(demo => (
-          <ContentCard
-            href={`${BASE}demos/${demo.id}`}
-            title={demo.data.title}
-            date={demo.data.date}
-            description={demo.data.description}
-            tags={demo.data.tags}
-          />
-        ))}
-      </div>
-    </section>
-  )}
-
-  {allProducts.length > 0 && (
-    <section class="mb-16">
-      <header class="mb-6 flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-2">
-            products · {String(allProducts.length).padStart(2, '0')}
-          </p>
-          <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-text">产品</h2>
-        </div>
-        <a
-          href={`${BASE}products`}
-          class="font-body text-sm font-medium text-accent hover:text-accent-2 transition-colors duration-200 cursor-pointer"
-        >
-          全部 →
-        </a>
-      </header>
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {allProducts.map(product => (
-          <ContentCard
-            href={`${BASE}products/${product.id}`}
-            title={product.data.title}
-            date={product.data.date}
-            description={product.data.description}
-            badge={statusBadge(product.data.status)}
+            badge={typeBadge[post.data.type]}
           />
         ))}
       </div>

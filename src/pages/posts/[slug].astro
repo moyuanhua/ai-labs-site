@@ -3,14 +3,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
-  const products = (await getCollection('posts')).filter(p => p.data.type === 'product');
-  return products
-    .filter(p => !p.data.draft)
-    .map(product => ({ params: { slug: product.id }, props: { product } }));
+  const posts = (await getCollection('posts')).filter(p => !p.data.draft);
+  return posts.map(post => ({ params: { slug: post.id }, props: { post } }));
 }
 
-const { product } = Astro.props;
-const { Content } = await render(product);
+const { post } = Astro.props;
+const { Content } = await render(post);
 const BASE = import.meta.env.BASE_URL;
 
 const statusConfig = {
@@ -18,36 +16,50 @@ const statusConfig = {
   beta:          { label: 'Beta',        cls: 'bg-amber-100   text-amber-700   border-amber-200' },
   'coming-soon': { label: 'Coming Soon', cls: 'bg-zinc-100    text-zinc-500    border-zinc-200' },
 };
-const badge = statusConfig[product.data.status];
+const statusBadge = post.data.status ? statusConfig[post.data.status] : null;
 ---
 
-<BaseLayout title={`${product.data.title} — ai-labs`} description={product.data.description}>
+<BaseLayout title={`${post.data.title} — ai-labs`} description={post.data.description}>
   <article class="max-w-3xl mx-auto py-12">
     <a
-      href={`${BASE}products`}
+      href={`${BASE}posts`}
       class="font-body text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer"
     >
-      ← Products
+      ← Posts
     </a>
 
     <header class="mt-8 mb-12">
       <div class="flex items-start gap-4 flex-wrap">
         <h1 class="font-heading text-4xl font-semibold text-text leading-tight tracking-tight flex-1">
-          {product.data.title}
+          {post.data.title}
         </h1>
-        <span class={`shrink-0 text-sm font-body font-medium px-3 py-1 rounded-full border ${badge.cls}`}>
-          {badge.label}
-        </span>
+        {statusBadge && (
+          <span class={`shrink-0 text-sm font-body font-medium px-3 py-1 rounded-full border ${statusBadge.cls}`}>
+            {statusBadge.label}
+          </span>
+        )}
       </div>
-      <p class="font-body text-base text-text-muted mt-4 leading-relaxed">
-        {product.data.description}
-      </p>
+      <time
+        datetime={post.data.date.toISOString()}
+        class="font-body text-sm text-text-muted block mt-4"
+      >
+        {post.data.date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
+      </time>
+      {post.data.tags && post.data.tags.length > 0 && (
+        <div class="flex flex-wrap gap-1.5 mt-4">
+          {post.data.tags.map(tag => (
+            <span class="inline-flex items-center text-xs font-medium font-body text-accent bg-accent/5 border border-accent/15 px-2.5 py-1 rounded-full">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
 
-      {(product.data.url || product.data.github) && (
+      {(post.data.url || post.data.github) && (
         <div class="flex gap-3 mt-6 flex-wrap">
-          {product.data.url && (
+          {post.data.url && (
             <a
-              href={product.data.url}
+              href={post.data.url}
               target="_blank"
               rel="noopener noreferrer"
               class="px-5 py-2.5 bg-accent text-white hover:bg-accent-2 rounded-full font-body font-semibold text-sm transition-colors duration-200 cursor-pointer"
@@ -55,9 +67,9 @@ const badge = statusConfig[product.data.status];
               访问产品 ↗
             </a>
           )}
-          {product.data.github && (
+          {post.data.github && (
             <a
-              href={product.data.github}
+              href={post.data.github}
               target="_blank"
               rel="noopener noreferrer"
               class="px-5 py-2.5 border border-border text-text-muted hover:text-text hover:border-text-muted rounded-full font-body font-medium text-sm transition-colors duration-200 cursor-pointer"
