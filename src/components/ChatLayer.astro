@@ -175,9 +175,13 @@ const BASE = import.meta.env.BASE_URL;
 
       let time = 0;
 
-      const bgParticles: Array<{ x: number; y: number; vx: number; vy: number; size: number; alpha: number; twinkle: number }> = [];
-      for (let i = 0; i < 80; i++) {
-        bgParticles.push({
+      // --- Layer 1: Deep-space starfield (150 stars) ---
+      type BgStar = { x: number; y: number; vx: number; vy: number; size: number; alpha: number; twinkle: number; color: string };
+      const bgStars: BgStar[] = [];
+      for (let i = 0; i < 150; i++) {
+        const roll = Math.random();
+        const color = roll < 0.7 ? '255, 255, 255' : roll < 0.85 ? '180, 200, 255' : '200, 180, 255';
+        bgStars.push({
           x: Math.random() * w,
           y: Math.random() * h,
           vx: (Math.random() - 0.5) * 0.15,
@@ -185,21 +189,67 @@ const BASE = import.meta.env.BASE_URL;
           size: Math.random() * 1.5 + 0.3,
           alpha: Math.random() * 0.4 + 0.1,
           twinkle: Math.random() * Math.PI * 2,
+          color,
         });
       }
 
-      const orbitParticles: Array<{ angle: number; radius: number; speed: number; size: number; opacity: number; ringIdx: number }> = [];
-      for (let i = 0; i < 24; i++) {
-        const ringIdx = i % 4;
-        orbitParticles.push({
-          angle: (Math.PI * 2 * i) / 24 + Math.random() * 0.3,
-          radius: [2.0, 2.8, 3.6, 4.4][ringIdx],
-          speed: 0.002 + Math.random() * 0.003,
-          size: 1 + Math.random() * 2,
-          opacity: 0.2 + Math.random() * 0.4,
-          ringIdx,
+      // Faint nebula clouds for depth
+      type Nebula = { x: number; y: number; r: number; color: string };
+      const nebulae: Nebula[] = [];
+      for (let i = 0; i < 3; i++) {
+        const color = Math.random() < 0.5 ? '139, 92, 246' : '99, 102, 241';
+        nebulae.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          r: Math.min(w, h) * (0.2 + Math.random() * 0.3),
+          color,
         });
       }
+
+      // --- Layer 3: Accretion disk rings (8 rings) ---
+      const ringCount = 8;
+      const ringRadii = [1.5, 2.0, 2.5, 3.2, 3.9, 4.6, 5.0, 5.5];
+      const ringRyRatio = [0.3, 0.35, 0.4, 0.5, 0.55, 0.65, 0.7, 0.75];
+      const ringRotSpeed = [0.2, -0.15, 0.12, -0.1, 0.08, -0.07, 0.06, -0.05];
+      const ringTilt = [0.3, -0.25, 0.2, -0.15, 0.12, -0.1, 0.08, -0.06];
+      const ringColors: string[] = [
+        'rgba(165, 243, 252, 0.15)',
+        'rgba(165, 243, 252, 0.15)',
+        'rgba(129, 140, 248, 0.12)',
+        'rgba(129, 140, 248, 0.12)',
+        'rgba(129, 140, 248, 0.12)',
+        'rgba(167, 139, 250, 0.08)',
+        'rgba(167, 139, 250, 0.08)',
+        'rgba(167, 139, 250, 0.08)',
+      ];
+      const ringWidths = [1.5, 1.5, 1, 1, 1, 1, 1, 1];
+
+      // --- Layer 4: Accretion disk particles (80) ---
+      type DiskParticle = { angle: number; ringIdx: number; speed: number; size: number; opacity: number };
+      const diskParticles: DiskParticle[] = [];
+      for (let i = 0; i < 80; i++) {
+        const ringIdx = i % ringCount;
+        const isInner = ringIdx < 2;
+        const isMiddle = ringIdx >= 2 && ringIdx < 5;
+        diskParticles.push({
+          angle: Math.random() * Math.PI * 2,
+          ringIdx,
+          speed: isInner ? 0.004 + Math.random() * 0.004 : isMiddle ? 0.002 + Math.random() * 0.002 : 0.001 + Math.random() * 0.001,
+          size: isInner ? 1.5 + Math.random() * 1.5 : isMiddle ? 1 + Math.random() * 1 : 0.5 + Math.random() * 0.8,
+          opacity: isInner ? 0.5 + Math.random() * 0.4 : isMiddle ? 0.3 + Math.random() * 0.3 : 0.15 + Math.random() * 0.2,
+        });
+      }
+
+      // --- Layer 6: Polar data jets ---
+      type JetParticle = { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; size: number; prevX: number; prevY: number };
+      const jets: JetParticle[] = [];
+      const jetAxisAngle = -Math.PI / 2 + 0.3;
+      let jetSpawnAccum = 0;
+
+      // --- Layer 7: Shockwaves ---
+      type Shockwave = { r: number; alpha: number };
+      const shockwaves: Shockwave[] = [];
+      let lastShockwaveTime = 0;
 
       function draw() {
         ctx!.clearRect(0, 0, w, h);
@@ -207,84 +257,78 @@ const BASE = import.meta.env.BASE_URL;
 
         const cx = w * 0.65;
         const cy = h * 0.5;
-        const baseR = Math.min(w, h) * 0.12;
+        const baseR = Math.min(w, h) * 0.15;
 
-        bgParticles.forEach(p => {
+        const breatheSpeed = orbState === 'idle' ? 0.5 : orbState === 'typing' ? 1.5 : 3.0;
+        const breatheAmp = orbState === 'idle' ? 0.03 : orbState === 'typing' ? 0.08 : 0.15;
+        const breathe = 1 + Math.sin(time * breatheSpeed) * breatheAmp;
+        const r = Math.max(1, baseR * breathe);
+
+        const glowAlpha = orbState === 'idle' ? 0.08 : orbState === 'typing' ? 0.15 : 0.25;
+        const orbitSpeedMul = orbState === 'idle' ? 1 : orbState === 'typing' ? 2.5 : 5;
+        const twinkleSpeed = orbState === 'idle' ? 0.02 : orbState === 'typing' ? 0.035 : 0.05;
+        const rimBrightness = orbState === 'idle' ? 1 : orbState === 'typing' ? 1.3 : 1.6 + Math.sin(time * 8) * 0.2;
+
+        // === Layer 1: Nebulae + Stars ===
+        ctx!.globalCompositeOperation = 'lighter';
+        nebulae.forEach(n => {
+          const nr = Math.max(1, n.r);
+          const ng = ctx!.createRadialGradient(n.x, n.y, 0, n.x, n.y, nr);
+          ng.addColorStop(0, `rgba(${n.color}, 0.05)`);
+          ng.addColorStop(0.5, `rgba(${n.color}, 0.03)`);
+          ng.addColorStop(1, `rgba(${n.color}, 0)`);
+          ctx!.fillStyle = ng;
+          ctx!.beginPath();
+          ctx!.arc(n.x, n.y, nr, 0, Math.PI * 2);
+          ctx!.fill();
+        });
+
+        bgStars.forEach(p => {
           p.x += p.vx;
           p.y += p.vy;
-          p.twinkle += 0.02;
+          p.twinkle += twinkleSpeed;
           if (p.x < 0) p.x = w;
           if (p.x > w) p.x = 0;
           if (p.y < 0) p.y = h;
           if (p.y > h) p.y = 0;
           const twinkleAlpha = p.alpha * (0.5 + Math.sin(p.twinkle) * 0.5);
-          ctx!.fillStyle = `rgba(255, 255, 255, ${twinkleAlpha})`;
+          ctx!.fillStyle = `rgba(${p.color}, ${twinkleAlpha})`;
           ctx!.beginPath();
           ctx!.arc(p.x, p.y, p.size, 0, Math.PI * 2);
           ctx!.fill();
         });
 
-        const breatheSpeed = orbState === 'idle' ? 0.8 : orbState === 'typing' ? 2.0 : 4.0;
-        const breatheAmp = orbState === 'idle' ? 0.05 : orbState === 'typing' ? 0.1 : 0.18;
-        const breathe = 1 + Math.sin(time * breatheSpeed) * breatheAmp;
-        const r = Math.max(1, baseR * breathe);
-
-        const glowAlpha = orbState === 'idle' ? 0.06 : orbState === 'typing' ? 0.12 : 0.2;
-        const glowR = Math.max(1, r * 6);
+        // === Layer 2: Outer glow / nebula halo ===
+        const glowR = Math.max(1, baseR * 8);
         const glow = ctx!.createRadialGradient(cx, cy, 0, cx, cy, glowR);
         glow.addColorStop(0, `rgba(99, 102, 241, ${glowAlpha})`);
-        glow.addColorStop(0.3, `rgba(99, 102, 241, ${glowAlpha * 0.4})`);
-        glow.addColorStop(0.6, `rgba(129, 140, 248, ${glowAlpha * 0.15})`);
-        glow.addColorStop(1, 'rgba(99, 102, 241, 0)');
+        glow.addColorStop(0.3, `rgba(139, 92, 246, ${glowAlpha * 0.5})`);
+        glow.addColorStop(0.6, `rgba(6, 182, 212, ${glowAlpha * 0.15})`);
+        glow.addColorStop(1, 'rgba(6, 182, 212, 0)');
         ctx!.fillStyle = glow;
         ctx!.beginPath();
         ctx!.arc(cx, cy, glowR, 0, Math.PI * 2);
         ctx!.fill();
 
-        const haloR = Math.max(1, r * 2.2);
-        const halo = ctx!.createRadialGradient(cx, cy, r * 0.8, cx, cy, haloR);
-        halo.addColorStop(0, 'rgba(129, 140, 248, 0.15)');
-        halo.addColorStop(1, 'rgba(129, 140, 248, 0)');
-        ctx!.fillStyle = halo;
-        ctx!.beginPath();
-        ctx!.arc(cx, cy, haloR, 0, Math.PI * 2);
-        ctx!.fill();
-
-        const orbGrad = ctx!.createRadialGradient(cx - r * 0.35, cy - r * 0.35, 0, cx, cy, r);
-        orbGrad.addColorStop(0, 'rgba(165, 180, 252, 0.95)');
-        orbGrad.addColorStop(0.3, 'rgba(129, 140, 248, 0.7)');
-        orbGrad.addColorStop(0.7, 'rgba(99, 102, 241, 0.35)');
-        orbGrad.addColorStop(1, 'rgba(79, 70, 229, 0.05)');
-        ctx!.fillStyle = orbGrad;
-        ctx!.beginPath();
-        ctx!.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx!.fill();
-
-        ctx!.strokeStyle = 'rgba(165, 180, 252, 0.4)';
-        ctx!.lineWidth = 1.5;
-        ctx!.beginPath();
-        ctx!.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx!.stroke();
-
-        const orbitSpeedMul = orbState === 'idle' ? 1 : orbState === 'typing' ? 2.5 : 5;
-        for (let i = 0; i < 4; i++) {
-          const ringR = baseR * [2.0, 2.8, 3.6, 4.4][i];
-          const ringRy = ringR * [0.55, 0.65, 0.75, 0.85][i];
-          const rot = time * [0.15, -0.1, 0.08, -0.06][i] * orbitSpeedMul;
-          const tilt = [0.3, -0.2, 0.15, -0.1][i];
-          ctx!.strokeStyle = `rgba(99, 102, 241, ${0.1 - i * 0.02})`;
-          ctx!.lineWidth = 1;
+        // === Layer 3: Accretion disk rings ===
+        for (let i = 0; i < ringCount; i++) {
+          const ringR = Math.max(1, baseR * ringRadii[i]);
+          const ringRy = Math.max(1, ringR * ringRyRatio[i]);
+          const rot = time * ringRotSpeed[i] * orbitSpeedMul;
+          ctx!.strokeStyle = ringColors[i];
+          ctx!.lineWidth = ringWidths[i];
           ctx!.beginPath();
-          ctx!.ellipse(cx, cy, ringR, ringRy, rot + tilt, 0, Math.PI * 2);
+          ctx!.ellipse(cx, cy, ringR, ringRy, rot + ringTilt[i], 0, Math.PI * 2);
           ctx!.stroke();
         }
 
-        orbitParticles.forEach(p => {
+        // === Layer 4: Accretion disk particles ===
+        diskParticles.forEach(p => {
           p.angle += p.speed * orbitSpeedMul;
-          const ringR = baseR * p.radius;
-          const ringRy = ringR * [0.55, 0.65, 0.75, 0.85][p.ringIdx];
-          const rot = time * [0.15, -0.1, 0.08, -0.06][p.ringIdx] * orbitSpeedMul;
-          const tilt = [0.3, -0.2, 0.15, -0.1][p.ringIdx];
+          const ringR = Math.max(1, baseR * ringRadii[p.ringIdx]);
+          const ringRy = Math.max(1, ringR * ringRyRatio[p.ringIdx]);
+          const rot = time * ringRotSpeed[p.ringIdx] * orbitSpeedMul;
+          const tilt = ringTilt[p.ringIdx];
           const cosR = Math.cos(rot + tilt);
           const sinR = Math.sin(rot + tilt);
           const localX = Math.cos(p.angle) * ringR;
@@ -292,17 +336,152 @@ const BASE = import.meta.env.BASE_URL;
           const px = cx + localX * cosR - localY * sinR;
           const py = cy + localX * sinR + localY * cosR;
 
-          ctx!.fillStyle = `rgba(165, 180, 252, ${p.opacity})`;
+          const trailAngle = p.angle - p.speed * orbitSpeedMul * 4;
+          const tLocalX = Math.cos(trailAngle) * ringR;
+          const tLocalY = Math.sin(trailAngle) * ringRy;
+          const tpx = cx + tLocalX * cosR - tLocalY * sinR;
+          const tpy = cy + tLocalX * sinR + tLocalY * cosR;
+
+          const isInner = p.ringIdx < 2;
+          const isMiddle = p.ringIdx >= 2 && p.ringIdx < 5;
+          const color = isInner ? '165, 243, 252' : isMiddle ? '129, 140, 248' : '167, 139, 250';
+
+          ctx!.strokeStyle = `rgba(${color}, ${p.opacity * 0.4})`;
+          ctx!.lineWidth = p.size * 0.8;
           ctx!.beginPath();
-          ctx!.arc(px, py, p.size, 0, Math.PI * 2);
+          ctx!.moveTo(tpx, tpy);
+          ctx!.lineTo(px, py);
+          ctx!.stroke();
+
+          ctx!.fillStyle = `rgba(${color}, ${p.opacity})`;
+          ctx!.beginPath();
+          ctx!.arc(px, py, Math.max(0.5, p.size), 0, Math.PI * 2);
           ctx!.fill();
 
-          ctx!.fillStyle = `rgba(165, 180, 252, ${p.opacity * 0.3})`;
+          const haloMul = isInner ? 3 : isMiddle ? 2 : 1.5;
+          ctx!.fillStyle = `rgba(${color}, ${p.opacity * 0.25})`;
           ctx!.beginPath();
-          ctx!.arc(px, py, p.size * 2.5, 0, Math.PI * 2);
+          ctx!.arc(px, py, Math.max(1, p.size * haloMul), 0, Math.PI * 2);
           ctx!.fill();
         });
 
+        // === Layer 5: The core (singularity) ===
+        ctx!.globalCompositeOperation = 'source-over';
+        const coreOuterR = Math.max(1, r * 1.3);
+        const coreGrad = ctx!.createRadialGradient(cx, cy, 0, cx, cy, coreOuterR);
+        coreGrad.addColorStop(0, 'rgba(0, 0, 0, 1)');
+        coreGrad.addColorStop(0.46, 'rgba(0, 0, 0, 0.9)');
+        coreGrad.addColorStop(0.77, `rgba(165, 243, 252, ${Math.min(1, 0.8 * rimBrightness)})`);
+        coreGrad.addColorStop(1, 'rgba(165, 243, 252, 0)');
+        ctx!.fillStyle = coreGrad;
+        ctx!.beginPath();
+        ctx!.arc(cx, cy, coreOuterR, 0, Math.PI * 2);
+        ctx!.fill();
+
+        ctx!.fillStyle = 'rgba(0, 0, 0, 1)';
+        ctx!.beginPath();
+        ctx!.arc(cx, cy, Math.max(1, r * 0.7), 0, Math.PI * 2);
+        ctx!.fill();
+
+        // Bright rim glow (additive)
+        ctx!.globalCompositeOperation = 'lighter';
+        const rimGlowR = Math.max(1, r * 1.15);
+        const rimInnerR = Math.max(1, r * 0.95);
+        const rimGlow = ctx!.createRadialGradient(cx, cy, rimInnerR, cx, cy, rimGlowR);
+        rimGlow.addColorStop(0, 'rgba(165, 243, 252, 0)');
+        rimGlow.addColorStop(0.5, `rgba(165, 243, 252, ${Math.min(1, 0.6 * rimBrightness)})`);
+        rimGlow.addColorStop(1, 'rgba(165, 243, 252, 0)');
+        ctx!.fillStyle = rimGlow;
+        ctx!.beginPath();
+        ctx!.arc(cx, cy, rimGlowR, 0, Math.PI * 2);
+        ctx!.fill();
+
+        ctx!.strokeStyle = `rgba(224, 242, 254, ${Math.min(1, 0.9 * rimBrightness)})`;
+        ctx!.lineWidth = 1.5;
+        ctx!.beginPath();
+        ctx!.arc(cx, cy, Math.max(1, r), 0, Math.PI * 2);
+        ctx!.stroke();
+
+        // Replying white-hot flash
+        if (orbState === 'replying') {
+          const flash = 0.25 + Math.sin(time * 6) * 0.15;
+          ctx!.fillStyle = `rgba(255, 255, 255, ${Math.max(0, Math.min(1, flash))})`;
+          ctx!.beginPath();
+          ctx!.arc(cx, cy, Math.max(1, r * 0.75), 0, Math.PI * 2);
+          ctx!.fill();
+        }
+
+        // === Layer 6: Polar data jets ===
+        const jetTargetTotal = orbState === 'idle' ? 20 : orbState === 'typing' ? 40 : 60;
+        const jetSpeed = orbState === 'idle' ? 1.0 : orbState === 'typing' ? 2.0 : 3.5;
+        jetSpawnAccum = Math.min(jetSpawnAccum + jetTargetTotal / 80, 5);
+        while (jetSpawnAccum >= 1 && jets.length < 70) {
+          jetSpawnAccum -= 1;
+          const up = Math.random() < 0.5;
+          const angle = up ? jetAxisAngle : jetAxisAngle + Math.PI;
+          const spread = (Math.random() - 0.5) * 0.2;
+          const v = jetSpeed * (0.7 + Math.random() * 0.6);
+          const spawnR = Math.max(1, r);
+          const sx = cx + Math.cos(angle) * spawnR;
+          const sy = cy + Math.sin(angle) * spawnR;
+          jets.push({
+            x: sx,
+            y: sy,
+            vx: Math.cos(angle + spread) * v,
+            vy: Math.sin(angle + spread) * v,
+            life: 0,
+            maxLife: 60 + Math.random() * 40,
+            size: 1 + Math.random() * 1.5,
+            prevX: sx,
+            prevY: sy,
+          });
+        }
+
+        for (let i = jets.length - 1; i >= 0; i--) {
+          const j = jets[i];
+          j.prevX = j.x;
+          j.prevY = j.y;
+          j.x += j.vx;
+          j.y += j.vy;
+          j.life++;
+          const lifeRatio = j.life / j.maxLife;
+          const opacity = Math.max(0, 1 - lifeRatio) * 0.8;
+          ctx!.strokeStyle = `rgba(224, 242, 254, ${opacity * 0.6})`;
+          ctx!.lineWidth = j.size;
+          ctx!.beginPath();
+          ctx!.moveTo(j.prevX, j.prevY);
+          ctx!.lineTo(j.x, j.y);
+          ctx!.stroke();
+          ctx!.fillStyle = `rgba(224, 242, 254, ${opacity})`;
+          ctx!.beginPath();
+          ctx!.arc(j.x, j.y, Math.max(0.5, j.size), 0, Math.PI * 2);
+          ctx!.fill();
+          if (j.life >= j.maxLife || j.x < -50 || j.x > w + 50 || j.y < -50 || j.y > h + 50) {
+            jets.splice(i, 1);
+          }
+        }
+
+        // === Layer 7: Spiral shockwaves (replying only) ===
+        if (orbState === 'replying' && time - lastShockwaveTime > 1) {
+          shockwaves.push({ r: baseR * 1.2, alpha: 0.6 });
+          lastShockwaveTime = time;
+        }
+        for (let i = shockwaves.length - 1; i >= 0; i--) {
+          const sw = shockwaves[i];
+          sw.r += 2.5;
+          sw.alpha *= 0.985;
+          const swR = Math.max(1, sw.r);
+          ctx!.strokeStyle = `rgba(165, 243, 252, ${Math.max(0, sw.alpha)})`;
+          ctx!.lineWidth = 1.5;
+          ctx!.beginPath();
+          ctx!.arc(cx, cy, swR, 0, Math.PI * 2);
+          ctx!.stroke();
+          if (sw.r > baseR * 6 || sw.alpha < 0.01) {
+            shockwaves.splice(i, 1);
+          }
+        }
+
+        ctx!.globalCompositeOperation = 'source-over';
         requestAnimationFrame(draw);
       }
       draw();
