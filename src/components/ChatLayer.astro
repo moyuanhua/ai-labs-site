@@ -24,7 +24,8 @@ const BASE = import.meta.env.BASE_URL;
 
     {/* Greeting + messages */}
     <div class="relative flex-1 flex flex-col justify-center w-full px-6 sm:px-10 lg:px-16 xl:px-24 py-8">
-      <div class="mb-6">
+      <canvas data-chat-orb class="absolute right-0 top-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] pointer-events-none opacity-80" aria-hidden="true"></canvas>
+      <div class="relative mb-6 z-10">
         <p class="font-heading text-xl sm:text-2xl text-white font-medium mb-2">
           你好，我是 moyuanhua 的 AI
         </p>
@@ -33,7 +34,7 @@ const BASE = import.meta.env.BASE_URL;
         </p>
       </div>
 
-      <div data-chat-messages class="flex-1 min-h-[160px] max-h-[40vh] overflow-y-auto space-y-3 pr-2"></div>
+      <div data-chat-messages class="relative z-10 flex-1 min-h-[160px] max-h-[40vh] overflow-y-auto space-y-3 pr-2"></div>
     </div>
 
     {/* Bottom input bar */}
@@ -109,13 +110,16 @@ const BASE = import.meta.env.BASE_URL;
         </div>
       </header>
 
-      <div data-chat-messages class="relative flex-1 overflow-y-auto px-6 sm:px-10 lg:px-16 xl:px-24 py-6 space-y-4"></div>
+      <div class="relative flex-1 overflow-hidden">
+        <canvas data-chat-orb class="absolute right-4 top-4 w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] pointer-events-none opacity-60" aria-hidden="true"></canvas>
+        <div data-chat-messages class="relative z-10 h-full overflow-y-auto px-6 sm:px-10 lg:px-16 xl:px-24 py-6 space-y-4"></div>
+      </div>
 
       <div class="relative shrink-0 border-t border-white/8 bg-[#111]">
         <div class="px-6 sm:px-10 lg:px-16 xl:px-24 py-5 flex gap-3 items-center">
           <div class="relative flex-1">
             <span data-chat-placeholder class="chat-placeholder absolute inset-0 flex items-center pointer-events-none text-white/40 text-sm sm:text-base font-body select-none">
-              ask me anything…<span class="chat-cursor-blink">▌</span>
+              随便问点什么…<span class="chat-cursor-blink">▌</span>
             </span>
             <input
               data-chat-input
@@ -129,7 +133,7 @@ const BASE = import.meta.env.BASE_URL;
             type="button"
             class="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg px-5 py-2 transition-colors cursor-pointer"
           >
-            Send
+            发送
           </button>
         </div>
       </div>
@@ -144,6 +148,113 @@ const BASE = import.meta.env.BASE_URL;
     { role: 'user', text: '你可以做什么？' },
     { role: 'ai', text: '我可以回答关于 moyuanhua 的博客文章、demo 项目和产品的问题。比如你可以问我：\n• 你最近写了什么博客？\n• 有哪些有趣的 demo？\n• 你在做哪些产品？' },
   ];
+
+  type OrbState = 'idle' | 'typing' | 'replying';
+  let orbState: OrbState = 'idle';
+  let orbCanvases: HTMLCanvasElement[] = [];
+
+  function initOrb() {
+    orbCanvases = Array.from(document.querySelectorAll('[data-chat-orb]')) as HTMLCanvasElement[];
+    orbCanvases.forEach(canvas => {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      let w = canvas.clientWidth;
+      let h = canvas.clientHeight;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
+
+      const cx = w / 2;
+      const cy = h / 2;
+      const baseR = Math.min(w, h) * 0.16;
+      let time = 0;
+
+      const orbitParticles: Array<{ angle: number; radius: number; speed: number; size: number; opacity: number }> = [];
+      for (let i = 0; i < 12; i++) {
+        orbitParticles.push({
+          angle: (Math.PI * 2 * i) / 12,
+          radius: baseR * (1.8 + (i % 3) * 0.3),
+          speed: 0.003 + (i % 4) * 0.001,
+          size: 1.5 + (i % 3) * 0.8,
+          opacity: 0.3 + (i % 4) * 0.15,
+        });
+      }
+
+      function draw() {
+        ctx!.clearRect(0, 0, w, h);
+        time += 0.016;
+
+        const breatheSpeed = orbState === 'idle' ? 0.015 : orbState === 'typing' ? 0.04 : 0.08;
+        const breatheAmp = orbState === 'idle' ? 0.06 : orbState === 'typing' ? 0.12 : 0.2;
+        const breathe = 1 + Math.sin(time * breatheSpeed * 60) * breatheAmp;
+        const r = Math.max(1, baseR * breathe);
+
+        const glowAlpha = orbState === 'idle' ? 0.08 : orbState === 'typing' ? 0.15 : 0.25;
+        const glowR = Math.max(1, r * 3.5);
+        const glow = ctx!.createRadialGradient(cx, cy, 0, cx, cy, glowR);
+        glow.addColorStop(0, `rgba(99, 102, 241, ${glowAlpha})`);
+        glow.addColorStop(0.5, `rgba(99, 102, 241, ${glowAlpha * 0.3})`);
+        glow.addColorStop(1, 'rgba(99, 102, 241, 0)');
+        ctx!.fillStyle = glow;
+        ctx!.beginPath();
+        ctx!.arc(cx, cy, glowR, 0, Math.PI * 2);
+        ctx!.fill();
+
+        const orbGrad = ctx!.createRadialGradient(cx - r * 0.3, cy - r * 0.3, 0, cx, cy, r);
+        orbGrad.addColorStop(0, 'rgba(129, 140, 248, 0.9)');
+        orbGrad.addColorStop(0.5, 'rgba(99, 102, 241, 0.5)');
+        orbGrad.addColorStop(1, 'rgba(99, 102, 241, 0.1)');
+        ctx!.fillStyle = orbGrad;
+        ctx!.beginPath();
+        ctx!.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx!.fill();
+
+        ctx!.strokeStyle = 'rgba(129, 140, 248, 0.3)';
+        ctx!.lineWidth = 1;
+        ctx!.beginPath();
+        ctx!.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx!.stroke();
+
+        const orbitSpeedMul = orbState === 'idle' ? 1 : orbState === 'typing' ? 2.5 : 4;
+        for (let i = 0; i < 2; i++) {
+          const ringR = baseR * (2.2 + i * 0.8);
+          const rot = time * 0.2 * orbitSpeedMul * (i % 2 === 0 ? 1 : -1);
+          ctx!.strokeStyle = `rgba(99, 102, 241, ${0.08 - i * 0.03})`;
+          ctx!.lineWidth = 1;
+          ctx!.beginPath();
+          ctx!.ellipse(cx, cy, ringR, ringR * 0.6, rot, 0, Math.PI * 2);
+          ctx!.stroke();
+        }
+
+        orbitParticles.forEach(p => {
+          p.angle += p.speed * orbitSpeedMul;
+          const px = cx + Math.cos(p.angle) * p.radius;
+          const py = cy + Math.sin(p.angle) * p.radius * 0.6;
+          ctx!.fillStyle = `rgba(129, 140, 248, ${p.opacity})`;
+          ctx!.beginPath();
+          ctx!.arc(px, py, p.size, 0, Math.PI * 2);
+          ctx!.fill();
+        });
+
+        requestAnimationFrame(draw);
+      }
+      draw();
+
+      const resizeObs = new ResizeObserver(() => {
+        w = canvas.clientWidth;
+        h = canvas.clientHeight;
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        ctx!.scale(dpr, dpr);
+      });
+      resizeObs.observe(canvas);
+    });
+  }
+
+  function setOrbState(state: OrbState) {
+    orbState = state;
+  }
 
   function getHistory(): Array<{ role: 'user' | 'ai'; text: string; ts: number }> {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
@@ -216,6 +327,7 @@ const BASE = import.meta.env.BASE_URL;
       messagesEl!.querySelectorAll('[data-example="true"]').forEach(el => el.remove());
 
       messagesEl!.appendChild(createBubble('user', text));
+      setOrbState('typing');
       const hist = getHistory();
       hist.push({ role: 'user', text, ts: Date.now() });
       saveHistory(hist);
@@ -225,11 +337,13 @@ const BASE = import.meta.env.BASE_URL;
 
       setTimeout(() => {
         const typing = createTypingIndicator();
+        setOrbState('replying');
         messagesEl!.appendChild(typing);
         messagesEl!.scrollTop = messagesEl!.scrollHeight;
 
         setTimeout(() => {
           typing.remove();
+          setOrbState('idle');
           messagesEl!.appendChild(createBubble('ai', FAKE_AI_REPLY));
           const h2 = getHistory();
           h2.push({ role: 'ai', text: FAKE_AI_REPLY, ts: Date.now() });
@@ -254,5 +368,6 @@ const BASE = import.meta.env.BASE_URL;
 
   initChat();
   initDockDot();
-  document.addEventListener('astro:page-load', () => { initChat(); initDockDot(); });
+  initOrb();
+  document.addEventListener('astro:page-load', () => { initChat(); initDockDot(); initOrb(); });
 </script>
