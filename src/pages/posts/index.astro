@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import ContentCard from '../../components/ContentCard.astro';
 import { getCollection } from 'astro:content';
 
 const BASE = import.meta.env.BASE_URL;
@@ -9,40 +8,60 @@ const posts = (await getCollection('posts'))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
 const typeBadge = {
-  blog:    { label: '博客',  color: 'slate'  as const },
-  demo:    { label: 'Demo', color: 'green'  as const },
-  product: { label: '产品',  color: 'yellow' as const },
+  blog:    { label: '博客',  cls: 'bg-white/10 text-white/50 border-white/15' },
+  demo:    { label: 'Demo', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
+  product: { label: '产品',  cls: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
 };
 ---
 
 <BaseLayout title="内容 — ai-labs" description="所有内容：博客、Demo、产品">
 
   <header class="pt-16 pb-12 text-center">
-    <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-4">
+    <p class="text-xs uppercase tracking-widest font-body font-medium text-white/30 mb-4">
       内容 · {String(posts.length).padStart(2, '0')}
     </p>
-    <h1 class="font-heading text-4xl font-semibold text-text mb-4 tracking-tight">
+    <h1 class="font-heading text-5xl font-normal text-white mb-4 tracking-tight">
       内容
     </h1>
-    <p class="font-body text-base sm:text-lg text-text-muted max-w-xl mx-auto leading-relaxed">
+    <p class="font-body text-base sm:text-lg text-white/50 max-w-xl mx-auto leading-relaxed">
       博客、Demo、产品——所有内容都在这里。
     </p>
   </header>
 
   <section>
     {posts.length === 0 ? (
-      <p class="font-body text-text-muted text-center py-20">— 暂无内容，敬请期待 —</p>
+      <p class="font-body text-white/30 text-center py-20">— 暂无内容，敬请期待 —</p>
     ) : (
-      <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div>
         {posts.map(post => (
-          <ContentCard
+          <a
             href={`${BASE}posts/${post.id}`}
-            title={post.data.title}
-            date={post.data.date}
-            description={post.data.description}
-            tags={post.data.tags}
-            badge={typeBadge[post.data.type]}
-          />
+            class="scroll-reveal group block mb-20 cursor-pointer"
+          >
+            <span class={`inline-block text-xs uppercase tracking-widest font-body font-medium px-2.5 py-0.5 rounded-full border mb-4 ${typeBadge[post.data.type].cls}`}>
+              {typeBadge[post.data.type].label}
+            </span>
+            <h2 class="text-3xl sm:text-4xl font-normal font-heading text-white group-hover:text-indigo-400 transition-colors duration-200 leading-tight mb-3">
+              {post.data.title}
+            </h2>
+            <p class="text-base font-body text-white/50 leading-relaxed mb-4 max-w-2xl">
+              {post.data.description}
+            </p>
+            <div class="flex items-center gap-3 flex-wrap">
+              <time class="text-sm font-body text-white/30">
+                {post.data.date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </time>
+              {post.data.tags && post.data.tags.length > 0 && (
+                <div class="flex flex-wrap gap-1.5">
+                  {post.data.tags.map(tag => (
+                    <span class="inline-flex items-center text-xs font-medium font-body text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </a>
         ))}
       </div>
     )}

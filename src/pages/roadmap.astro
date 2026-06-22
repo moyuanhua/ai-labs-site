@@ -3,28 +3,28 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import roadmap from '../data/roadmap.json';
 
 const typeColors: Record<string, string> = {
-  feature: 'text-accent    border-accent/20    bg-accent/5',
-  content: 'text-emerald-600 border-emerald-200 bg-emerald-50',
-  infra:   'text-text-muted border-border      bg-zinc-100',
+  feature: 'text-indigo-400  border-indigo-500/20  bg-indigo-500/10',
+  content: 'text-emerald-400 border-emerald-500/25 bg-emerald-500/10',
+  infra:   'text-white/50   border-border          bg-white/5',
 };
 
 const colStyles: Record<string, { header: string; dot: string }> = {
-  planned:       { header: 'text-text-muted', dot: 'bg-text-faint' },
-  'in-progress': { header: 'text-accent',     dot: 'bg-accent' },
-  done:          { header: 'text-emerald-600', dot: 'bg-emerald-500' },
+  planned:       { header: 'text-white/50',   dot: 'bg-white/30' },
+  'in-progress': { header: 'text-indigo-400', dot: 'bg-indigo-500' },
+  done:          { header: 'text-emerald-400', dot: 'bg-emerald-500' },
 };
 ---
 
 <BaseLayout title="路线图 — ai-sites" description="我们正在做什么，打算做什么">
 
   <header class="pt-16 pb-12 text-center">
-    <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-4">
+    <p class="text-xs uppercase tracking-widest font-body font-medium text-white/50 mb-4">
       路线图 · 实时
     </p>
-    <h1 class="font-heading text-4xl font-semibold text-text mb-4 tracking-tight">
+    <h1 class="font-heading text-4xl font-normal text-white mb-4 tracking-tight">
       路线图
     </h1>
-    <p class="font-body text-base sm:text-lg text-text-muted max-w-xl mx-auto leading-relaxed">
+    <p class="font-body text-base sm:text-lg text-white/50 max-w-xl mx-auto leading-relaxed">
       正在做什么，计划做什么，已经完成了什么。
     </p>
   </header>
@@ -33,36 +33,36 @@ const colStyles: Record<string, { header: string; dot: string }> = {
     {roadmap.columns.map(col => {
       const style = colStyles[col.id] ?? colStyles['planned'];
       return (
-        <div>
+        <div class="scroll-reveal">
           <div class="flex items-center gap-2 mb-4 border-b border-border pb-3">
             <span class={`w-2 h-2 rounded-full ${style.dot}`} aria-hidden="true"></span>
             <h2 class={`font-body text-xs uppercase tracking-widest font-medium ${style.header}`}>
               {col.label}
             </h2>
-            <span class="ml-auto text-xs font-body font-medium text-text-muted border border-border bg-surface px-2 py-0.5 rounded-full">
+            <span class="ml-auto text-xs font-body font-medium text-white/50 border border-border bg-surface px-2 py-0.5 rounded-full">
               {col.items.length}
             </span>
           </div>
 
           <div class="flex flex-col gap-3">
             {col.items.map(item => (
-              <div class="rounded-xl border border-border bg-surface p-4 hover:shadow-sm transition-shadow duration-200">
+              <div class="rounded-xl border border-border bg-surface p-4 hover:border-white/15 transition-colors duration-200">
                 <div class="flex items-start justify-between gap-2 mb-2">
-                  <p class="font-body text-sm font-semibold text-text leading-snug flex-1">
+                  <p class="font-body text-sm font-medium text-white leading-snug flex-1">
                     {item.title}
                   </p>
                   <span class={`shrink-0 font-body text-[0.65rem] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full border ${typeColors[item.type] ?? typeColors['infra']}`}>
                     {item.type}
                   </span>
                 </div>
-                <p class="font-body text-sm text-text-muted leading-relaxed mb-2">
+                <p class="font-body text-sm text-white/50 leading-relaxed mb-2">
                   {item.description}
                 </p>
                 {'eta' in item && item.eta && (
-                  <p class="font-body text-xs text-text-muted">预计：{item.eta}</p>
+                  <p class="font-body text-xs text-white/50">预计：{item.eta}</p>
                 )}
                 {'date' in item && item.date && (
-                  <p class="font-body text-xs text-emerald-600 font-medium">完成于 {item.date}</p>
+                  <p class="font-body text-xs text-emerald-400 font-medium">完成于 {item.date}</p>
                 )}
               </div>
             ))}

@@ -9,14 +9,14 @@ const BASE = import.meta.env.BASE_URL;
 {variant === 'hero' && (
   <div
     transition:name="chat-layer"
-    class="chat-hero relative flex flex-col h-[calc(100vh-65px)] bg-slate-50 overflow-hidden w-screen ml-[calc(50%-50vw)]"
+    class="chat-hero relative flex flex-col h-[calc(100vh-65px)] bg-[#090909] overflow-hidden w-screen ml-[calc(50%-50vw)]"
   >
     {/* Top status bar */}
-    <div class="relative shrink-0 px-6 sm:px-10 lg:px-16 xl:px-24 pt-6 pb-4 flex items-center justify-between border-b border-slate-200">
+    <div class="relative shrink-0 px-6 sm:px-10 lg:px-16 xl:px-24 pt-6 pb-4 flex items-center justify-between border-b border-white/8">
       <div class="flex items-center gap-3">
-        <span class="font-heading text-2xl sm:text-3xl text-slate-900 font-semibold tracking-tight">moyuanhua</span>
+        <span class="font-heading text-2xl sm:text-3xl text-white font-semibold tracking-tight">moyuanhua</span>
       </div>
-      <div class="flex items-center gap-2 text-sm text-slate-500">
+      <div class="flex items-center gap-2 text-sm text-white/50">
         <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
         <span>在线</span>
       </div>
@@ -25,10 +25,10 @@ const BASE = import.meta.env.BASE_URL;
     {/* Greeting + messages */}
     <div class="relative flex-1 flex flex-col justify-center w-full px-6 sm:px-10 lg:px-16 xl:px-24 py-8">
       <div class="mb-6">
-        <p class="font-heading text-xl sm:text-2xl text-slate-900 font-medium mb-2">
+        <p class="font-heading text-xl sm:text-2xl text-white font-medium mb-2">
           你好，我是 moyuanhua 的 AI
         </p>
-        <p class="font-body text-sm sm:text-base text-slate-500 leading-relaxed max-w-lg">
+        <p class="font-body text-sm sm:text-base text-white/50 leading-relaxed max-w-lg">
           问我关于我的工作、demo 或写作。我了解这个网站上的所有内容。
         </p>
       </div>
@@ -37,17 +37,17 @@ const BASE = import.meta.env.BASE_URL;
     </div>
 
     {/* Bottom input bar */}
-    <div class="relative shrink-0 border-t border-slate-200 bg-white">
+    <div class="relative shrink-0 border-t border-white/8 bg-[#111]">
       <div class="w-full px-6 sm:px-10 lg:px-16 xl:px-24 py-5 flex gap-3 items-center">
         <div class="relative flex-1">
-          <span data-chat-placeholder class="chat-placeholder absolute inset-0 flex items-center pointer-events-none text-slate-400 text-sm sm:text-base font-body select-none">
+          <span data-chat-placeholder class="chat-placeholder absolute inset-0 flex items-center pointer-events-none text-white/40 text-sm sm:text-base font-body select-none">
             随便问点什么…<span class="chat-cursor-blink">▌</span>
           </span>
           <input
             data-chat-input
             type="text"
             placeholder=""
-            class="relative w-full bg-transparent border-none text-slate-900 text-sm sm:text-base font-body focus:outline-none"
+            class="relative w-full bg-transparent border-none text-white text-sm sm:text-base font-body focus:outline-none"
           />
         </div>
         <button
@@ -67,7 +67,7 @@ const BASE = import.meta.env.BASE_URL;
     href={`${BASE}chat`}
     transition:name="chat-layer"
     data-chat-dock
-    class="chat-dock fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-300 flex items-center justify-center cursor-pointer transition-all duration-200"
+    class="chat-dock fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full bg-[#111] border border-white/10 hover:border-indigo-500 flex items-center justify-center cursor-pointer transition-all duration-200"
     aria-label="打开对话"
   >
     <svg
@@ -84,20 +84,20 @@ const BASE = import.meta.env.BASE_URL;
 {variant === 'fullscreen' && (
   <div
     transition:name="chat-layer"
-    class="chat-fullscreen fixed inset-0 z-50 bg-slate-50 flex flex-col overflow-hidden"
+    class="chat-fullscreen fixed inset-0 z-50 bg-[#090909] flex flex-col overflow-hidden"
   >
     <div class="relative flex-1 flex flex-col w-full">
-      <header class="shrink-0 px-6 sm:px-10 lg:px-16 xl:px-24 pt-6 pb-4 flex items-center justify-between border-b border-slate-200">
+      <header class="shrink-0 px-6 sm:px-10 lg:px-16 xl:px-24 pt-6 pb-4 flex items-center justify-between border-b border-white/8">
         <div class="flex items-center gap-3">
-          <span class="font-heading text-lg text-slate-900 font-medium">moyuanhua 的 AI</span>
+          <span class="font-heading text-lg text-white font-medium">moyuanhua 的 AI</span>
           <span class="w-2 h-2 bg-emerald-500 rounded-full" aria-hidden="true"></span>
         </div>
         <div class="flex items-center gap-4">
-          <span class="text-sm text-slate-500 hidden sm:inline">在线</span>
+          <span class="text-sm text-white/50 hidden sm:inline">在线</span>
           <button
             type="button"
             onclick="history.back()"
-            class="text-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
+            class="text-white/40 hover:text-white transition-colors cursor-pointer"
             aria-label="关闭对话"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -111,17 +111,17 @@ const BASE = import.meta.env.BASE_URL;
 
       <div data-chat-messages class="relative flex-1 overflow-y-auto px-6 sm:px-10 lg:px-16 xl:px-24 py-6 space-y-4"></div>
 
-      <div class="relative shrink-0 border-t border-slate-200 bg-white">
+      <div class="relative shrink-0 border-t border-white/8 bg-[#111]">
         <div class="px-6 sm:px-10 lg:px-16 xl:px-24 py-5 flex gap-3 items-center">
           <div class="relative flex-1">
-            <span data-chat-placeholder class="chat-placeholder absolute inset-0 flex items-center pointer-events-none text-slate-400 text-sm sm:text-base font-body select-none">
+            <span data-chat-placeholder class="chat-placeholder absolute inset-0 flex items-center pointer-events-none text-white/40 text-sm sm:text-base font-body select-none">
               ask me anything…<span class="chat-cursor-blink">▌</span>
             </span>
             <input
               data-chat-input
               type="text"
               placeholder=""
-              class="relative w-full bg-transparent border-none text-slate-900 text-sm sm:text-base font-body focus:outline-none"
+              class="relative w-full bg-transparent border-none text-white text-sm sm:text-base font-body focus:outline-none"
             />
           </div>
           <button
@@ -157,14 +157,14 @@ const BASE = import.meta.env.BASE_URL;
     const div = document.createElement('div');
     div.className = role === 'user'
       ? 'bg-indigo-600 text-white rounded-lg rounded-tr-sm p-3 text-sm ml-auto max-w-[80%] chat-bubble-enter font-body'
-      : 'bg-white border border-slate-200 rounded-lg rounded-tl-sm p-3 text-sm text-slate-700 max-w-[85%] chat-bubble-enter font-body';
+      : 'bg-[#1A1A1A] border border-white/8 rounded-lg rounded-tl-sm p-3 text-sm text-white/80 max-w-[85%] chat-bubble-enter font-body';
     div.textContent = text;
     return div;
   }
 
   function createTypingIndicator(): HTMLElement {
     const div = document.createElement('div');
-    div.className = 'bg-white border border-slate-200 rounded-lg rounded-tl-sm p-3 inline-flex gap-1';
+    div.className = 'bg-[#1A1A1A] border border-white/8 rounded-lg rounded-tl-sm p-3 inline-flex gap-1';
     div.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
     return div;
   }

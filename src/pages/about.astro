@@ -21,42 +21,42 @@ const allEmpty = sections.every(isEmpty);
 <BaseLayout title="关于 — ai-labs" description="关于我">
   <article class="max-w-3xl mx-auto py-12">
     <header class="mb-16 text-center">
-      <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-4">
+      <p class="text-xs uppercase tracking-widest font-body font-medium text-white/50 mb-4">
         关于
       </p>
-      <h1 class="font-heading text-4xl font-semibold text-text mb-4 tracking-tight">
+      <h1 class="font-heading text-4xl font-normal text-white mb-4 tracking-tight">
         关于
       </h1>
-      <p class="font-body text-base sm:text-lg text-text-muted max-w-xl mx-auto leading-relaxed">
+      <p class="font-body text-base sm:text-lg text-white/50 max-w-xl mx-auto leading-relaxed">
         我是谁，我在做什么，我在用什么工具。
       </p>
     </header>
 
     {allEmpty && (
-      <p class="font-body text-text-faint text-center py-12 italic">— 整页待补充 —</p>
+      <p class="font-body text-white/30 text-center py-12 italic">— 整页待补充 —</p>
     )}
 
     <div class="space-y-16">
       {sections.map(section => (
-        <section>
-          <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-3">
+        <section class="scroll-reveal">
+          <p class="text-xs uppercase tracking-widest font-body font-medium text-white/50 mb-3">
             {section.eyebrow}
           </p>
-          <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-text mb-4">
+          <h2 class="font-heading text-2xl sm:text-3xl font-normal text-white mb-4">
             {section.title}
           </h2>
           {isEmpty(section) ? (
-            <p class="font-body text-text-faint italic">— 待补充 —</p>
+            <p class="font-body text-white/30 italic">— 待补充 —</p>
           ) : section.isContact ? (
             <ul class="space-y-2 font-body text-sm">
               {section.items.map(item => {
                 if (!isContactItem(item)) return null;
                 return (
                   <li>
-                    <span class="text-text-muted">{item.label}: </span>
+                    <span class="text-white/50">{item.label}: </span>
                     <a
                       href={item.url}
-                      class="text-accent hover:text-accent-2 underline underline-offset-2 transition-colors duration-200 cursor-pointer"
+                      class="text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition-colors duration-200 cursor-pointer"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -67,11 +67,11 @@ const allEmpty = sections.every(isEmpty);
               })}
             </ul>
           ) : (
-            <ul class="font-body text-sm text-text-muted space-y-2 list-none">
+            <ul class="font-body text-sm text-white/50 space-y-2 list-none">
               {section.items.map(item => (
                 <li class="flex gap-2">
-                  <span class="text-accent shrink-0" aria-hidden="true">·</span>
-                  <span class="text-text-muted">{String(item)}</span>
+                  <span class="text-indigo-400 shrink-0" aria-hidden="true">·</span>
+                  <span class="text-white/50">{String(item)}</span>
                 </li>
               ))}
             </ul>

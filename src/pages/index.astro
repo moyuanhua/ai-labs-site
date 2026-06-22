@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ContentCard from '../components/ContentCard.astro';
 import ChatLayer from '../components/ChatLayer.astro';
 import { getCollection } from 'astro:content';
 
@@ -12,9 +11,9 @@ const allPosts = (await getCollection('posts'))
   .slice(0, 6);
 
 const typeBadge = {
-  blog:    { label: '博客',  color: 'slate'  as const },
-  demo:    { label: 'Demo', color: 'green'  as const },
-  product: { label: '产品',  color: 'yellow' as const },
+  blog:    { label: '博客',  cls: 'bg-white/10 text-white/50 border-white/15' },
+  demo:    { label: 'Demo', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
+  product: { label: '产品',  cls: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
 };
 ---
 
@@ -23,36 +22,59 @@ const typeBadge = {
   <ChatLayer variant="hero" />
 
   <section class="mt-20 mb-8 text-center">
-    <p class="text-text-muted text-sm font-body">— 或浏览内容 —</p>
+    <p class="text-white/50 text-sm font-body">— 或浏览内容 —</p>
   </section>
 
   {allPosts.length > 0 && (
     <section class="mb-16">
-      <header class="mb-6 flex items-end justify-between gap-4 flex-wrap">
+      <header class="mb-12 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-2">
+          <p class="text-xs uppercase tracking-widest font-body font-medium text-white/50 mb-2">
             内容 · {String(allPosts.length).padStart(2, '0')}
           </p>
-          <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-text">最新内容</h2>
+          <h2 class="font-heading text-2xl sm:text-3xl font-normal text-white">最新内容</h2>
         </div>
         <a
           href={`${BASE}posts`}
-          class="font-body text-sm font-medium text-accent hover:text-accent-2 transition-colors duration-200 cursor-pointer"
+          class="font-body text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors duration-200 cursor-pointer"
         >
           全部 →
         </a>
       </header>
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {allPosts.map(post => (
-          <ContentCard
-            href={`${BASE}posts/${post.id}`}
-            title={post.data.title}
-            date={post.data.date}
-            description={post.data.description}
-            tags={post.data.tags}
-            badge={typeBadge[post.data.type]}
-          />
-        ))}
+      <div>
+        {allPosts.map((post, i) => {
+          const isLeft = i % 2 === 0;
+          return (
+            <a
+              href={`${BASE}posts/${post.id}`}
+              class={`scroll-reveal group block mb-24 cursor-pointer ${isLeft ? '' : 'sm:ml-auto sm:w-2/3'}`}
+            >
+              <span class={`inline-block text-xs uppercase tracking-widest font-body font-medium px-2.5 py-0.5 rounded-full border mb-4 ${typeBadge[post.data.type].cls}`}>
+                {typeBadge[post.data.type].label}
+              </span>
+              <h3 class="text-3xl sm:text-4xl font-normal font-heading text-white group-hover:text-indigo-400 transition-colors duration-200 leading-tight mb-3">
+                {post.data.title}
+              </h3>
+              <p class="text-base font-body text-white/50 leading-relaxed mb-4 max-w-2xl">
+                {post.data.description}
+              </p>
+              <div class="flex items-center gap-3 flex-wrap">
+                <time class="text-sm font-body text-white/30">
+                  {post.data.date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </time>
+                {post.data.tags && post.data.tags.length > 0 && (
+                  <div class="flex flex-wrap gap-1.5">
+                    {post.data.tags.map(tag => (
+                      <span class="inline-flex items-center text-xs font-medium font-body text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </a>
+          );
+        })}
       </div>
     </section>
   )}

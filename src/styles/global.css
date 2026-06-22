@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  /* Light, warm, personal — zinc-based neutrals + blue accent */
-  --color-bg:         #FAFAFA;   /* page background — warm off-white */
-  --color-surface:    #FFFFFF;   /* cards, panels */
-  --color-surface-2:  #F4F4F5;   /* hover surface (zinc-100) */
-  --color-text:       #09090B;   /* body text (zinc-950) */
-  --color-text-muted: #52525B;   /* secondary text (zinc-600) */
-  --color-text-faint: #A1A1AA;   /* faint text, dividers (zinc-400) */
-  --color-accent:     #2563EB;   /* primary CTA, links (blue-600) */
-  --color-accent-2:   #1D4ED8;   /* hover accent (blue-700) */
-  --color-border:     #E4E4E7;   /* card/divider borders (zinc-200) */
-  --color-dark:       #18181B;   /* dark surfaces — nav, footer bg, code blocks */
+  /* Dark, premium — Shopify Editions inspired. Deep black + indigo accent. */
+  --color-bg:         #090909;
+  --color-surface:    #111111;
+  --color-surface-2:  #1A1A1A;
+  --color-text:       #FFFFFF;
+  --color-text-muted: rgba(255,255,255,0.6);
+  --color-text-faint: rgba(255,255,255,0.3);
+  --color-accent:     #6366F1;
+  --color-accent-2:   #818CF8;
+  --color-border:     rgba(255,255,255,0.08);
+  --color-dark:       #050505;
 
   /* Typography: Space Grotesk for headings (tech feel), DM Sans for body/UI.
      "Conversational Terminal" pairing — geometric headings + neutral body. */
@@ -22,36 +22,35 @@
 
 @layer base {
   :root {
-    color-scheme: light;
-    --color-bg:         #FAFAFA;
-    --color-surface:    #FFFFFF;
-    --color-surface-2:  #F4F4F5;
-    --color-text:       #09090B;
-    --color-text-muted: #52525B;
-    --color-text-faint: #A1A1AA;
-    --color-accent:     #2563EB;
-    --color-accent-2:   #1D4ED8;
-    --color-border:     #E4E4E7;
-    --color-dark:       #18181B;
+    color-scheme: dark;
+    --color-bg:         #090909;
+    --color-surface:    #111111;
+    --color-surface-2:  #1A1A1A;
+    --color-text:       #FFFFFF;
+    --color-text-muted: rgba(255,255,255,0.6);
+    --color-text-faint: rgba(255,255,255,0.3);
+    --color-accent:     #6366F1;
+    --color-accent-2:   #818CF8;
+    --color-border:     rgba(255,255,255,0.08);
+    --color-dark:       #050505;
 
-    /* Chat layer — minimal light, clean. NOT in @theme (no Tailwind utilities
+    /* Chat layer — dark, premium. NOT in @theme (no Tailwind utilities
        generated); referenced via var() in ChatLayer.astro and chat CSS below. */
-    --chat-bg: #F8FAFC;
-    --chat-border: #E2E8F0;
+    --chat-bg: #090909;
+    --chat-border: rgba(255,255,255,0.08);
     --chat-glow: none;
-    --chat-text: #0F172A;
-    --chat-text-muted: #64748B;
+    --chat-text: #FFFFFF;
+    --chat-text-muted: rgba(255,255,255,0.5);
     --chat-accent: #6366F1;
     --chat-accent-2: #818CF8;
-    --chat-bubble-ai-bg: #FFFFFF;
-    --chat-bubble-ai-border: #E2E8F0;
+    --chat-bubble-ai-bg: #1A1A1A;
+    --chat-bubble-ai-border: rgba(255,255,255,0.08);
     --chat-bubble-user-bg: #6366F1;
   }
 
   html {
     background: var(--color-bg);
     color: var(--color-text);
-    scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -89,14 +88,14 @@
   .prose-content h4 {
     color: var(--color-text);
     font-family: var(--font-heading);
-    font-weight: 600;
+    font-weight: 400;
     margin-top: 1.8em;
     margin-bottom: 0.6em;
     line-height: 1.25;
     letter-spacing: -0.01em;
   }
 
-  .prose-content h1 { font-size: 2.25rem; font-weight: 600; }
+  .prose-content h1 { font-size: 2.25rem; font-weight: 400; }
   .prose-content h2 { font-size: 1.875rem; }
   .prose-content h3 { font-size: 1.5rem; }
   .prose-content h4 { font-size: 1.25rem; }
@@ -128,8 +127,8 @@
 
   .prose-content pre {
     background: var(--color-dark);
-    color: #FAFAFA;
-    border: 1px solid var(--color-dark);
+    color: rgba(255,255,255,0.9);
+    border: 1px solid var(--color-border);
     border-radius: 0.75rem;
     padding: 1.25rem 1.5rem;
     overflow-x: auto;
@@ -202,14 +201,13 @@
     margin: 2.2em 0;
   }
 
-  .prose-content strong { color: var(--color-text); font-weight: 600; }
+  .prose-content strong { color: var(--color-text); font-weight: 500; }
   .prose-content em { color: var(--color-text); font-style: italic; }
 }
 
-/* ─── Chat layer (minimal light) ──────────────────────────────────────────
+/* ─── Chat layer (dark, premium) ──────────────────────────────────────────
    Three variants: hero (full-screen homepage), dock (floating button),
-   fullscreen (/chat page). Minimal light aesthetic: clean borders, indigo
-   accent, soft slate background. */
+   fullscreen (/chat page). Dark aesthetic: deep black, indigo accent. */
 
 /* Bubble entrance + typing indicator */
 .chat-bubble-enter {
@@ -221,7 +219,7 @@
 }
 
 .typing-dot {
-  width: 6px; height: 6px; border-radius: 50%; background: var(--chat-text-muted, #64748B);
+  width: 6px; height: 6px; border-radius: 50%; background: var(--chat-text-muted, rgba(255,255,255,0.5));
   animation: typing-pulse 1.4s ease-in-out infinite;
 }
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
@@ -258,4 +256,25 @@
   .chat-bubble-enter { animation: none; }
   .typing-dot        { animation: none; opacity: 0.6; }
   .chat-cursor-blink { animation: none; opacity: 0.6; }
+  .scroll-reveal     { opacity: 1; transform: none; }
+}
+
+/* ─── Scroll reveal ──────────────────────────────────────────────────── */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Lenis smooth scroll ────────────────────────────────────────────── */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal { opacity: 1; transform: none; transition: none; }
 }

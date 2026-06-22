@@ -12,25 +12,25 @@ const { Content } = await render(post);
 const BASE = import.meta.env.BASE_URL;
 
 const statusConfig = {
-  live:          { label: '已上线', cls: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  beta:          { label: '测试中', cls: 'bg-amber-100   text-amber-700   border-amber-200' },
-  'coming-soon': { label: '即将',   cls: 'bg-zinc-100    text-zinc-500    border-zinc-200' },
+  live:          { label: '已上线', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
+  beta:          { label: '测试中', cls: 'bg-amber-500/15   text-amber-400   border-amber-500/25' },
+  'coming-soon': { label: '即将',   cls: 'bg-white/10       text-white/50    border-white/15' },
 };
 const statusBadge = post.data.status ? statusConfig[post.data.status] : null;
 ---
 
 <BaseLayout title={`${post.data.title} — ai-labs`} description={post.data.description}>
-  <article class="max-w-3xl mx-auto py-12">
+  <article class="scroll-reveal max-w-3xl mx-auto py-12">
     <a
       href={`${BASE}posts`}
-      class="font-body text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer"
+      class="font-body text-sm text-white/50 hover:text-white transition-colors duration-200 cursor-pointer"
     >
       ← 内容
     </a>
 
     <header class="mt-8 mb-12">
       <div class="flex items-start gap-4 flex-wrap">
-        <h1 class="font-heading text-4xl font-semibold text-text leading-tight tracking-tight flex-1">
+        <h1 class="font-heading text-4xl font-normal text-white leading-tight tracking-tight flex-1">
           {post.data.title}
         </h1>
         {statusBadge && (
@@ -41,14 +41,14 @@ const statusBadge = post.data.status ? statusConfig[post.data.status] : null;
       </div>
       <time
         datetime={post.data.date.toISOString()}
-        class="font-body text-sm text-text-muted block mt-4"
+        class="font-body text-sm text-white/40 block mt-4"
       >
         {post.data.date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
       </time>
       {post.data.tags && post.data.tags.length > 0 && (
         <div class="flex flex-wrap gap-1.5 mt-4">
           {post.data.tags.map(tag => (
-            <span class="inline-flex items-center text-xs font-medium font-body text-accent bg-accent/5 border border-accent/15 px-2.5 py-1 rounded-full">
+            <span class="inline-flex items-center text-xs font-medium font-body text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full">
               {tag}
             </span>
           ))}
@@ -62,7 +62,7 @@ const statusBadge = post.data.status ? statusConfig[post.data.status] : null;
               href={post.data.url}
               target="_blank"
               rel="noopener noreferrer"
-              class="px-5 py-2.5 bg-accent text-white hover:bg-accent-2 rounded-full font-body font-semibold text-sm transition-colors duration-200 cursor-pointer"
+              class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full font-body font-semibold text-sm transition-colors duration-200 cursor-pointer"
             >
               访问产品 ↗
             </a>
@@ -72,7 +72,7 @@ const statusBadge = post.data.status ? statusConfig[post.data.status] : null;
               href={post.data.github}
               target="_blank"
               rel="noopener noreferrer"
-              class="px-5 py-2.5 border border-border text-text-muted hover:text-text hover:border-text-muted rounded-full font-body font-medium text-sm transition-colors duration-200 cursor-pointer"
+              class="px-5 py-2.5 border border-white/15 text-white/60 hover:text-white hover:border-white/30 rounded-full font-body font-medium text-sm transition-colors duration-200 cursor-pointer"
             >
               GitHub ↗
             </a>
