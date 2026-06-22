@@ -6,10 +6,10 @@ type AboutItem = string | { label: string; url: string };
 type AboutSection = { eyebrow: string; title: string; items: AboutItem[]; isContact?: boolean };
 
 const sections: AboutSection[] = [
-  { eyebrow: 'now · 现在',      title: '现在在做什么', items: about.now },
-  { eyebrow: 'projects · 项目', title: '最近的项目',   items: about.projects },
-  { eyebrow: 'skills · 工具',   title: '技能与工具',   items: about.skills },
-  { eyebrow: 'contact · 联系',  title: '联系方式',     items: about.contact, isContact: true },
+  { eyebrow: '现在',  title: '现在在做什么', items: about.now },
+  { eyebrow: '项目',  title: '最近的项目',   items: about.projects },
+  { eyebrow: '工具',  title: '技能与工具',   items: about.skills },
+  { eyebrow: '联系',  title: '联系方式',     items: about.contact, isContact: true },
 ];
 
 const isEmpty = (s: AboutSection) => s.items.length === 0;
@@ -18,14 +18,14 @@ const isContactItem = (item: AboutItem): item is { label: string; url: string } 
 const allEmpty = sections.every(isEmpty);
 ---
 
-<BaseLayout title="About — ai-labs" description="关于我">
+<BaseLayout title="关于 — ai-labs" description="关于我">
   <article class="max-w-3xl mx-auto py-12">
     <header class="mb-16 text-center">
       <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-4">
-        about
+        关于
       </p>
       <h1 class="font-heading text-4xl font-semibold text-text mb-4 tracking-tight">
-        About
+        关于
       </h1>
       <p class="font-body text-base sm:text-lg text-text-muted max-w-xl mx-auto leading-relaxed">
         我是谁，我在做什么，我在用什么工具。

@@ -12,9 +12,9 @@ const { Content } = await render(post);
 const BASE = import.meta.env.BASE_URL;
 
 const statusConfig = {
-  live:          { label: 'Live',        cls: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  beta:          { label: 'Beta',        cls: 'bg-amber-100   text-amber-700   border-amber-200' },
-  'coming-soon': { label: 'Coming Soon', cls: 'bg-zinc-100    text-zinc-500    border-zinc-200' },
+  live:          { label: '已上线', cls: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  beta:          { label: '测试中', cls: 'bg-amber-100   text-amber-700   border-amber-200' },
+  'coming-soon': { label: '即将',   cls: 'bg-zinc-100    text-zinc-500    border-zinc-200' },
 };
 const statusBadge = post.data.status ? statusConfig[post.data.status] : null;
 ---
@@ -25,7 +25,7 @@ const statusBadge = post.data.status ? statusConfig[post.data.status] : null;
       href={`${BASE}posts`}
       class="font-body text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer"
     >
-      ← Posts
+      ← 内容
     </a>
 
     <header class="mt-8 mb-12">

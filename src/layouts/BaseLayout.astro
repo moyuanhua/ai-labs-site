@@ -11,10 +11,10 @@ const { title, description = 'HTML-first content publishing', chatVariant = 'doc
 import '../styles/global.css';
 const BASE = import.meta.env.BASE_URL;
 const navLinks = [
-  { href: `${BASE}posts`,   label: 'Posts' },
-  { href: `${BASE}roadmap`, label: 'Roadmap' },
-  { href: `${BASE}about`,   label: 'About' },
-  { href: `${BASE}chat`,    label: 'Chat', soon: true },
+  { href: `${BASE}posts`,   label: '内容' },
+  { href: `${BASE}roadmap`, label: '路线图' },
+  { href: `${BASE}about`,   label: '关于' },
+  { href: `${BASE}chat`,    label: '对话', soon: true },
 ];
 const currentPath = Astro.url.pathname;
 ---
@@ -56,8 +56,8 @@ const currentPath = Astro.url.pathname;
                 }`}
               >
                 {link.label}
-                {link.soon && (
-                  <span class="ml-1.5 text-[0.65rem] uppercase tracking-wider text-accent">soon</span>
+                  {link.soon && (
+                  <span class="ml-1.5 text-[0.65rem] uppercase tracking-wider text-accent">即将</span>
                 )}
               </a>
             </li>
@@ -73,13 +73,13 @@ const currentPath = Astro.url.pathname;
 
   <footer class="bg-dark text-white/70 py-12 mt-20">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4">
-      <p class="text-white text-sm sm:text-base font-body">Built with Astro · HTML-first · AI-ready</p>
+      <p class="text-white text-sm sm:text-base font-body">用 Astro 构建 · HTML 优先 · AI 就绪</p>
       <ul class="flex items-center gap-3 text-xs uppercase tracking-widest text-white/60 font-body">
-        <li><a href={`${BASE}posts`}   class="hover:text-white transition-colors duration-200 cursor-pointer">Posts</a></li>
+        <li><a href={`${BASE}posts`}   class="hover:text-white transition-colors duration-200 cursor-pointer">内容</a></li>
         <li aria-hidden="true">·</li>
-        <li><a href={`${BASE}roadmap`} class="hover:text-white transition-colors duration-200 cursor-pointer">Roadmap</a></li>
+        <li><a href={`${BASE}roadmap`} class="hover:text-white transition-colors duration-200 cursor-pointer">路线图</a></li>
         <li aria-hidden="true">·</li>
-        <li><a href={`${BASE}about`}   class="hover:text-white transition-colors duration-200 cursor-pointer">About</a></li>
+        <li><a href={`${BASE}about`}   class="hover:text-white transition-colors duration-200 cursor-pointer">关于</a></li>
       </ul>
       <p class="text-white/50 text-xs font-body">&copy; 2024 moyuanhua</p>
     </div>

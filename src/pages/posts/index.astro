@@ -9,20 +9,20 @@ const posts = (await getCollection('posts'))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
 const typeBadge = {
-  blog:    { label: 'Blog',    color: 'slate'  as const },
-  demo:    { label: 'Demo',    color: 'green'  as const },
-  product: { label: 'Product', color: 'yellow' as const },
+  blog:    { label: '博客',  color: 'slate'  as const },
+  demo:    { label: 'Demo', color: 'green'  as const },
+  product: { label: '产品',  color: 'yellow' as const },
 };
 ---
 
-<BaseLayout title="Posts — ai-labs" description="所有内容：博客、Demo、产品">
+<BaseLayout title="内容 — ai-labs" description="所有内容：博客、Demo、产品">
 
   <header class="pt-16 pb-12 text-center">
     <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-4">
-      posts · {String(posts.length).padStart(2, '0')}
+      内容 · {String(posts.length).padStart(2, '0')}
     </p>
     <h1 class="font-heading text-4xl font-semibold text-text mb-4 tracking-tight">
-      Posts
+      内容
     </h1>
     <p class="font-body text-base sm:text-lg text-text-muted max-w-xl mx-auto leading-relaxed">
       博客、Demo、产品——所有内容都在这里。

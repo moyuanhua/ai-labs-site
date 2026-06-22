@@ -12,9 +12,9 @@ const allPosts = (await getCollection('posts'))
   .slice(0, 6);
 
 const typeBadge = {
-  blog:    { label: 'Blog',    color: 'slate'  as const },
-  demo:    { label: 'Demo',    color: 'green'  as const },
-  product: { label: 'Product', color: 'yellow' as const },
+  blog:    { label: '博客',  color: 'slate'  as const },
+  demo:    { label: 'Demo', color: 'green'  as const },
+  product: { label: '产品',  color: 'yellow' as const },
 };
 ---
 
@@ -23,7 +23,7 @@ const typeBadge = {
   <ChatLayer variant="hero" />
 
   <section class="mt-20 mb-8 text-center">
-    <p class="text-text-muted text-sm font-body">— or browse the content —</p>
+    <p class="text-text-muted text-sm font-body">— 或浏览内容 —</p>
   </section>
 
   {allPosts.length > 0 && (
@@ -31,7 +31,7 @@ const typeBadge = {
       <header class="mb-6 flex items-end justify-between gap-4 flex-wrap">
         <div>
           <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-2">
-            posts · {String(allPosts.length).padStart(2, '0')}
+            内容 · {String(allPosts.length).padStart(2, '0')}
           </p>
           <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-text">最新内容</h2>
         </div>

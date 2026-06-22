@@ -15,14 +15,14 @@ const colStyles: Record<string, { header: string; dot: string }> = {
 };
 ---
 
-<BaseLayout title="Roadmap — ai-sites" description="我们正在做什么，打算做什么">
+<BaseLayout title="路线图 — ai-sites" description="我们正在做什么，打算做什么">
 
   <header class="pt-16 pb-12 text-center">
     <p class="text-xs uppercase tracking-widest font-body font-medium text-text-muted mb-4">
-      roadmap · live
+      路线图 · 实时
     </p>
     <h1 class="font-heading text-4xl font-semibold text-text mb-4 tracking-tight">
-      Roadmap
+      路线图
     </h1>
     <p class="font-body text-base sm:text-lg text-text-muted max-w-xl mx-auto leading-relaxed">
       正在做什么，计划做什么，已经完成了什么。
@@ -59,7 +59,7 @@ const colStyles: Record<string, { header: string; dot: string }> = {
                   {item.description}
                 </p>
                 {'eta' in item && item.eta && (
-                  <p class="font-body text-xs text-text-muted">ETA: {item.eta}</p>
+                  <p class="font-body text-xs text-text-muted">预计：{item.eta}</p>
                 )}
                 {'date' in item && item.date && (
                   <p class="font-body text-xs text-emerald-600 font-medium">完成于 {item.date}</p>
