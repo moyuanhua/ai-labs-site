@@ -51,7 +51,7 @@ const currentPath = Astro.url.pathname;
 </head>
 <body class="bg-bg text-text min-h-screen flex flex-col antialiased font-body overflow-x-hidden">
   <header class="sticky top-0 bg-bg/80 backdrop-blur-md border-b border-border z-50">
-    <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4 flex-wrap">
+    <nav class="px-6 sm:px-10 lg:px-16 xl:px-24 py-4 flex items-center justify-between gap-4 flex-wrap">
       <a
         href={BASE}
         class="font-heading text-2xl font-bold text-text hover:text-accent transition-colors duration-200 cursor-pointer"
@@ -83,12 +83,12 @@ const currentPath = Astro.url.pathname;
     </nav>
   </header>
 
-  <main class="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+  <main class="flex-1 w-full">
     <slot />
   </main>
 
   <footer class="border-t border-border text-white/50 py-12 mt-20">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4">
+    <div class="px-6 sm:px-10 lg:px-16 xl:px-24 flex flex-col items-center gap-4">
       <p class="text-white text-sm sm:text-base font-body">用 Astro 构建 · HTML 优先 · AI 就绪</p>
       <ul class="flex items-center gap-3 text-xs uppercase tracking-widest text-white/60 font-body">
         <li><a href={`${BASE}posts`}   class="hover:text-white transition-colors duration-200 cursor-pointer">内容</a></li>

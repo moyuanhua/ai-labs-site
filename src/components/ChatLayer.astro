@@ -9,10 +9,13 @@ const BASE = import.meta.env.BASE_URL;
 {variant === 'hero' && (
   <div
     transition:name="chat-layer"
-    class="chat-hero relative flex flex-col h-[calc(100vh-65px)] bg-[#090909] overflow-hidden w-screen ml-[calc(50%-50vw)]"
+    class="chat-hero relative flex flex-col h-[calc(100vh-65px)] bg-[#090909] overflow-hidden"
   >
+    {/* AI pulse orb — full-area backdrop */}
+    <canvas data-chat-orb class="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true"></canvas>
+
     {/* Top status bar */}
-    <div class="relative shrink-0 px-6 sm:px-10 lg:px-16 xl:px-24 pt-6 pb-4 flex items-center justify-between border-b border-white/8">
+    <div class="relative z-10 shrink-0 px-6 sm:px-10 lg:px-16 xl:px-24 pt-6 pb-4 flex items-center justify-between border-b border-white/8">
       <div class="flex items-center gap-3">
         <span class="font-heading text-2xl sm:text-3xl text-white font-semibold tracking-tight">moyuanhua</span>
       </div>
@@ -23,9 +26,8 @@ const BASE = import.meta.env.BASE_URL;
     </div>
 
     {/* Greeting + messages */}
-    <div class="relative flex-1 flex flex-col justify-center w-full px-6 sm:px-10 lg:px-16 xl:px-24 py-8">
-      <canvas data-chat-orb class="absolute right-0 top-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] pointer-events-none opacity-80" aria-hidden="true"></canvas>
-      <div class="relative mb-6 z-10">
+    <div class="relative z-10 flex-1 flex flex-col justify-center w-full px-6 sm:px-10 lg:px-16 xl:px-24 py-8">
+      <div class="mb-6">
         <p class="font-heading text-xl sm:text-2xl text-white font-medium mb-2">
           你好，我是 moyuanhua 的 AI
         </p>
@@ -34,11 +36,11 @@ const BASE = import.meta.env.BASE_URL;
         </p>
       </div>
 
-      <div data-chat-messages class="relative z-10 flex-1 min-h-[160px] max-h-[40vh] overflow-y-auto space-y-3 pr-2"></div>
+      <div data-chat-messages class="flex-1 min-h-[160px] max-h-[40vh] overflow-y-auto space-y-3 pr-2"></div>
     </div>
 
     {/* Bottom input bar */}
-    <div class="relative shrink-0 border-t border-white/8 bg-[#111]">
+    <div class="relative z-10 shrink-0 border-t border-white/8 bg-[#111]">
       <div class="w-full px-6 sm:px-10 lg:px-16 xl:px-24 py-5 flex gap-3 items-center">
         <div class="relative flex-1">
           <span data-chat-placeholder class="chat-placeholder absolute inset-0 flex items-center pointer-events-none text-white/40 text-sm sm:text-base font-body select-none">
@@ -88,7 +90,8 @@ const BASE = import.meta.env.BASE_URL;
     class="chat-fullscreen fixed inset-0 z-50 bg-[#090909] flex flex-col overflow-hidden"
   >
     <div class="relative flex-1 flex flex-col w-full">
-      <header class="shrink-0 px-6 sm:px-10 lg:px-16 xl:px-24 pt-6 pb-4 flex items-center justify-between border-b border-white/8">
+      <canvas data-chat-orb class="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true"></canvas>
+      <header class="relative z-10 shrink-0 px-6 sm:px-10 lg:px-16 xl:px-24 pt-6 pb-4 flex items-center justify-between border-b border-white/8">
         <div class="flex items-center gap-3">
           <span class="font-heading text-lg text-white font-medium">moyuanhua 的 AI</span>
           <span class="w-2 h-2 bg-emerald-500 rounded-full" aria-hidden="true"></span>
@@ -110,12 +113,11 @@ const BASE = import.meta.env.BASE_URL;
         </div>
       </header>
 
-      <div class="relative flex-1 overflow-hidden">
-        <canvas data-chat-orb class="absolute right-4 top-4 w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] pointer-events-none opacity-60" aria-hidden="true"></canvas>
-        <div data-chat-messages class="relative z-10 h-full overflow-y-auto px-6 sm:px-10 lg:px-16 xl:px-24 py-6 space-y-4"></div>
+      <div class="relative z-10 flex-1 overflow-hidden">
+        <div data-chat-messages class="h-full overflow-y-auto px-6 sm:px-10 lg:px-16 xl:px-24 py-6 space-y-4"></div>
       </div>
 
-      <div class="relative shrink-0 border-t border-white/8 bg-[#111]">
+      <div class="relative z-10 shrink-0 border-t border-white/8 bg-[#111]">
         <div class="px-6 sm:px-10 lg:px-16 xl:px-24 py-5 flex gap-3 items-center">
           <div class="relative flex-1">
             <span data-chat-placeholder class="chat-placeholder absolute inset-0 flex items-center pointer-events-none text-white/40 text-sm sm:text-base font-body select-none">
@@ -161,23 +163,41 @@ const BASE = import.meta.env.BASE_URL;
       let w = canvas.clientWidth;
       let h = canvas.clientHeight;
       const dpr = window.devicePixelRatio || 1;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      ctx.scale(dpr, dpr);
 
-      const cx = w / 2;
-      const cy = h / 2;
-      const baseR = Math.min(w, h) * 0.16;
+      function resize() {
+        w = canvas.clientWidth;
+        h = canvas.clientHeight;
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      resize();
+
       let time = 0;
 
-      const orbitParticles: Array<{ angle: number; radius: number; speed: number; size: number; opacity: number }> = [];
-      for (let i = 0; i < 12; i++) {
+      const bgParticles: Array<{ x: number; y: number; vx: number; vy: number; size: number; alpha: number; twinkle: number }> = [];
+      for (let i = 0; i < 80; i++) {
+        bgParticles.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.15,
+          vy: (Math.random() - 0.5) * 0.15,
+          size: Math.random() * 1.5 + 0.3,
+          alpha: Math.random() * 0.4 + 0.1,
+          twinkle: Math.random() * Math.PI * 2,
+        });
+      }
+
+      const orbitParticles: Array<{ angle: number; radius: number; speed: number; size: number; opacity: number; ringIdx: number }> = [];
+      for (let i = 0; i < 24; i++) {
+        const ringIdx = i % 4;
         orbitParticles.push({
-          angle: (Math.PI * 2 * i) / 12,
-          radius: baseR * (1.8 + (i % 3) * 0.3),
-          speed: 0.003 + (i % 4) * 0.001,
-          size: 1.5 + (i % 3) * 0.8,
-          opacity: 0.3 + (i % 4) * 0.15,
+          angle: (Math.PI * 2 * i) / 24 + Math.random() * 0.3,
+          radius: [2.0, 2.8, 3.6, 4.4][ringIdx],
+          speed: 0.002 + Math.random() * 0.003,
+          size: 1 + Math.random() * 2,
+          opacity: 0.2 + Math.random() * 0.4,
+          ringIdx,
         });
       }
 
@@ -185,55 +205,101 @@ const BASE = import.meta.env.BASE_URL;
         ctx!.clearRect(0, 0, w, h);
         time += 0.016;
 
-        const breatheSpeed = orbState === 'idle' ? 0.015 : orbState === 'typing' ? 0.04 : 0.08;
-        const breatheAmp = orbState === 'idle' ? 0.06 : orbState === 'typing' ? 0.12 : 0.2;
-        const breathe = 1 + Math.sin(time * breatheSpeed * 60) * breatheAmp;
+        const cx = w * 0.65;
+        const cy = h * 0.5;
+        const baseR = Math.min(w, h) * 0.12;
+
+        bgParticles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.twinkle += 0.02;
+          if (p.x < 0) p.x = w;
+          if (p.x > w) p.x = 0;
+          if (p.y < 0) p.y = h;
+          if (p.y > h) p.y = 0;
+          const twinkleAlpha = p.alpha * (0.5 + Math.sin(p.twinkle) * 0.5);
+          ctx!.fillStyle = `rgba(255, 255, 255, ${twinkleAlpha})`;
+          ctx!.beginPath();
+          ctx!.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx!.fill();
+        });
+
+        const breatheSpeed = orbState === 'idle' ? 0.8 : orbState === 'typing' ? 2.0 : 4.0;
+        const breatheAmp = orbState === 'idle' ? 0.05 : orbState === 'typing' ? 0.1 : 0.18;
+        const breathe = 1 + Math.sin(time * breatheSpeed) * breatheAmp;
         const r = Math.max(1, baseR * breathe);
 
-        const glowAlpha = orbState === 'idle' ? 0.08 : orbState === 'typing' ? 0.15 : 0.25;
-        const glowR = Math.max(1, r * 3.5);
+        const glowAlpha = orbState === 'idle' ? 0.06 : orbState === 'typing' ? 0.12 : 0.2;
+        const glowR = Math.max(1, r * 6);
         const glow = ctx!.createRadialGradient(cx, cy, 0, cx, cy, glowR);
         glow.addColorStop(0, `rgba(99, 102, 241, ${glowAlpha})`);
-        glow.addColorStop(0.5, `rgba(99, 102, 241, ${glowAlpha * 0.3})`);
+        glow.addColorStop(0.3, `rgba(99, 102, 241, ${glowAlpha * 0.4})`);
+        glow.addColorStop(0.6, `rgba(129, 140, 248, ${glowAlpha * 0.15})`);
         glow.addColorStop(1, 'rgba(99, 102, 241, 0)');
         ctx!.fillStyle = glow;
         ctx!.beginPath();
         ctx!.arc(cx, cy, glowR, 0, Math.PI * 2);
         ctx!.fill();
 
-        const orbGrad = ctx!.createRadialGradient(cx - r * 0.3, cy - r * 0.3, 0, cx, cy, r);
-        orbGrad.addColorStop(0, 'rgba(129, 140, 248, 0.9)');
-        orbGrad.addColorStop(0.5, 'rgba(99, 102, 241, 0.5)');
-        orbGrad.addColorStop(1, 'rgba(99, 102, 241, 0.1)');
+        const haloR = Math.max(1, r * 2.2);
+        const halo = ctx!.createRadialGradient(cx, cy, r * 0.8, cx, cy, haloR);
+        halo.addColorStop(0, 'rgba(129, 140, 248, 0.15)');
+        halo.addColorStop(1, 'rgba(129, 140, 248, 0)');
+        ctx!.fillStyle = halo;
+        ctx!.beginPath();
+        ctx!.arc(cx, cy, haloR, 0, Math.PI * 2);
+        ctx!.fill();
+
+        const orbGrad = ctx!.createRadialGradient(cx - r * 0.35, cy - r * 0.35, 0, cx, cy, r);
+        orbGrad.addColorStop(0, 'rgba(165, 180, 252, 0.95)');
+        orbGrad.addColorStop(0.3, 'rgba(129, 140, 248, 0.7)');
+        orbGrad.addColorStop(0.7, 'rgba(99, 102, 241, 0.35)');
+        orbGrad.addColorStop(1, 'rgba(79, 70, 229, 0.05)');
         ctx!.fillStyle = orbGrad;
         ctx!.beginPath();
         ctx!.arc(cx, cy, r, 0, Math.PI * 2);
         ctx!.fill();
 
-        ctx!.strokeStyle = 'rgba(129, 140, 248, 0.3)';
-        ctx!.lineWidth = 1;
+        ctx!.strokeStyle = 'rgba(165, 180, 252, 0.4)';
+        ctx!.lineWidth = 1.5;
         ctx!.beginPath();
         ctx!.arc(cx, cy, r, 0, Math.PI * 2);
         ctx!.stroke();
 
-        const orbitSpeedMul = orbState === 'idle' ? 1 : orbState === 'typing' ? 2.5 : 4;
-        for (let i = 0; i < 2; i++) {
-          const ringR = baseR * (2.2 + i * 0.8);
-          const rot = time * 0.2 * orbitSpeedMul * (i % 2 === 0 ? 1 : -1);
-          ctx!.strokeStyle = `rgba(99, 102, 241, ${0.08 - i * 0.03})`;
+        const orbitSpeedMul = orbState === 'idle' ? 1 : orbState === 'typing' ? 2.5 : 5;
+        for (let i = 0; i < 4; i++) {
+          const ringR = baseR * [2.0, 2.8, 3.6, 4.4][i];
+          const ringRy = ringR * [0.55, 0.65, 0.75, 0.85][i];
+          const rot = time * [0.15, -0.1, 0.08, -0.06][i] * orbitSpeedMul;
+          const tilt = [0.3, -0.2, 0.15, -0.1][i];
+          ctx!.strokeStyle = `rgba(99, 102, 241, ${0.1 - i * 0.02})`;
           ctx!.lineWidth = 1;
           ctx!.beginPath();
-          ctx!.ellipse(cx, cy, ringR, ringR * 0.6, rot, 0, Math.PI * 2);
+          ctx!.ellipse(cx, cy, ringR, ringRy, rot + tilt, 0, Math.PI * 2);
           ctx!.stroke();
         }
 
         orbitParticles.forEach(p => {
           p.angle += p.speed * orbitSpeedMul;
-          const px = cx + Math.cos(p.angle) * p.radius;
-          const py = cy + Math.sin(p.angle) * p.radius * 0.6;
-          ctx!.fillStyle = `rgba(129, 140, 248, ${p.opacity})`;
+          const ringR = baseR * p.radius;
+          const ringRy = ringR * [0.55, 0.65, 0.75, 0.85][p.ringIdx];
+          const rot = time * [0.15, -0.1, 0.08, -0.06][p.ringIdx] * orbitSpeedMul;
+          const tilt = [0.3, -0.2, 0.15, -0.1][p.ringIdx];
+          const cosR = Math.cos(rot + tilt);
+          const sinR = Math.sin(rot + tilt);
+          const localX = Math.cos(p.angle) * ringR;
+          const localY = Math.sin(p.angle) * ringRy;
+          const px = cx + localX * cosR - localY * sinR;
+          const py = cy + localX * sinR + localY * cosR;
+
+          ctx!.fillStyle = `rgba(165, 180, 252, ${p.opacity})`;
           ctx!.beginPath();
           ctx!.arc(px, py, p.size, 0, Math.PI * 2);
+          ctx!.fill();
+
+          ctx!.fillStyle = `rgba(165, 180, 252, ${p.opacity * 0.3})`;
+          ctx!.beginPath();
+          ctx!.arc(px, py, p.size * 2.5, 0, Math.PI * 2);
           ctx!.fill();
         });
 
@@ -241,13 +307,7 @@ const BASE = import.meta.env.BASE_URL;
       }
       draw();
 
-      const resizeObs = new ResizeObserver(() => {
-        w = canvas.clientWidth;
-        h = canvas.clientHeight;
-        canvas.width = w * dpr;
-        canvas.height = h * dpr;
-        ctx!.scale(dpr, dpr);
-      });
+      const resizeObs = new ResizeObserver(resize);
       resizeObs.observe(canvas);
     });
   }

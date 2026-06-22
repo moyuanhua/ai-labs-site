@@ -17,7 +17,7 @@ const colStyles: Record<string, { header: string; dot: string }> = {
 
 <BaseLayout title="路线图 — ai-sites" description="我们正在做什么，打算做什么">
 
-  <header class="pt-16 pb-12 text-center">
+  <header class="pt-16 pb-12 text-center px-6 sm:px-10 lg:px-16 xl:px-24">
     <p class="text-xs uppercase tracking-widest font-body font-medium text-white/50 mb-4">
       路线图 · 实时
     </p>
@@ -29,7 +29,7 @@ const colStyles: Record<string, { header: string; dot: string }> = {
     </p>
   </header>
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 sm:px-10 lg:px-16 xl:px-24">
     {roadmap.columns.map(col => {
       const style = colStyles[col.id] ?? colStyles['planned'];
       return (
