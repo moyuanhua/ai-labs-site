@@ -1,58 +1,107 @@
 @import "tailwindcss";
 
-@theme {
-  /* Dark, premium — Shopify Editions inspired. Deep black + indigo accent. */
-  --color-bg:         #090909;
-  --color-surface:    #111111;
-  --color-surface-2:  #1A1A1A;
-  --color-text:       #FFFFFF;
-  --color-text-muted: rgba(255,255,255,0.6);
-  --color-text-faint: rgba(255,255,255,0.3);
-  --color-accent:     #6366F1;
-  --color-accent-2:   #818CF8;
-  --color-border:     rgba(255,255,255,0.08);
-  --color-dark:       #050505;
+/* ─────────────────────────────────────────────────────────────────────────
+   Theme tokens: dual-mode. Light = warm bone + ink, Dark = warm charcoal
+   + bone-white. Single accent: teal-700 (light, AA on bone) / #5eead4
+   (dark, AA on charcoal). All neutrals are WARM (no zinc here).
 
-  /* Typography: Space Grotesk for headings (tech feel), DM Sans for body/UI.
-     "Conversational Terminal" pairing — geometric headings + neutral body. */
-  --font-heading: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-body:    "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono:    ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+   `@theme inline` makes Tailwind utilities resolve the variable at use,
+   so per-scheme overrides in :root under @media just re-light the same
+   vars. Order matters: @theme first, then :root defaults, then dark block.
+   ────────────────────────────────────────────────────────────────────── */
+@theme inline {
+  --color-bg:         #f4f1ea;
+  --color-surface:    #ece8dd;
+  --color-surface-2:  #e0dccf;
+  --color-text:       #1c1b18;
+  --color-text-muted: rgba(28,27,24,0.62);
+  --color-text-faint: rgba(28,27,24,0.32);
+  --color-accent:     #0d9488;
+  --color-accent-2:   #14908a;
+  --color-accent-soft:rgba(13,148,136,0.12);
+  --color-border:    rgba(28,27,24,0.10);
+  --color-dark:       #1c1b18;
+
+  /* Chat-local tokens (referenced via var() in ChatLayer + HeroOrb).
+     NOT generated as Tailwind utilities; keep outside @theme default scope
+     by NOT prefixing with `--color-`. Declared inline so cascade resolves
+     them at use. These also get overridden per-scheme below. */
+  --chat-bg:               #f4f1ea;
+  --chat-border:           rgba(28,27,24,0.10);
+  --chat-text:             #1c1b18;
+  --chat-text-muted:       rgba(28,27,24,0.50);
+  --chat-accent:           #0d9488;
+  --chat-accent-2:         #14908a;
+  --chat-accent-soft:      #5eead4;
+  --chat-bubble-ai-bg:     #ece8dd;
+  --chat-bubble-ai-border: rgba(28,27,24,0.10);
+  --chat-bubble-user-bg:   #0d9488;
+
+  --font-heading: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-body:    "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono:    "Geist Mono", ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+}
+
+:root {
+  color-scheme: light dark;
+  --color-bg:         #f4f1ea;
+  --color-surface:    #ece8dd;
+  --color-surface-2:  #e0dccf;
+  --color-text:       #1c1b18;
+  --color-text-muted: rgba(28,27,24,0.62);
+  --color-text-faint: rgba(28,27,24,0.32);
+  --color-accent:     #0d9488;
+  --color-accent-2:   #14908a;
+  --color-accent-soft:rgba(13,148,136,0.12);
+  --color-border:    rgba(28,27,24,0.10);
+  --color-dark:       #1c1b18;
+
+  --chat-bg:               #f4f1ea;
+  --chat-border:           rgba(28,27,24,0.10);
+  --chat-text:             #1c1b18;
+  --chat-text-muted:       rgba(28,27,24,0.50);
+  --chat-accent:           #0d9488;
+  --chat-accent-2:         #14908a;
+  --chat-accent-soft:      #5eead4;
+  --chat-bubble-ai-bg:     #ece8dd;
+  --chat-bubble-ai-border: rgba(28,27,24,0.10);
+  --chat-bubble-user-bg:   #0d9488;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg:         #0f0d0b;
+    --color-surface:    #16120e;
+    --color-surface-2:  #1f1a14;
+    --color-text:       #ece8e1;
+    --color-text-muted: rgba(236,232,225,0.62);
+    --color-text-faint: rgba(236,232,225,0.32);
+    --color-accent:     #5eead4;
+    --color-accent-2:   #7fddd0;
+    --color-accent-soft:rgba(94,234,212,0.12);
+    --color-border:    rgba(236,232,225,0.08);
+    --color-dark:       #050403;
+
+    --chat-bg:               #0f0d0b;
+    --chat-border:           rgba(236,232,225,0.08);
+    --chat-text:             #ece8e1;
+    --chat-text-muted:       rgba(236,232,225,0.50);
+    --chat-accent:           #5eead4;
+    --chat-accent-2:         #7fddd0;
+    --chat-accent-soft:      #0d9488;
+    --chat-bubble-ai-bg:     #1f1a14;
+    --chat-bubble-ai-border: rgba(236,232,225,0.08);
+    --chat-bubble-user-bg:   #5eead4;
+  }
 }
 
 @layer base {
-  :root {
-    color-scheme: dark;
-    --color-bg:         #090909;
-    --color-surface:    #111111;
-    --color-surface-2:  #1A1A1A;
-    --color-text:       #FFFFFF;
-    --color-text-muted: rgba(255,255,255,0.6);
-    --color-text-faint: rgba(255,255,255,0.3);
-    --color-accent:     #6366F1;
-    --color-accent-2:   #818CF8;
-    --color-border:     rgba(255,255,255,0.08);
-    --color-dark:       #050505;
-
-    /* Chat layer — dark, premium. NOT in @theme (no Tailwind utilities
-       generated); referenced via var() in ChatLayer.astro and chat CSS below. */
-    --chat-bg: #090909;
-    --chat-border: rgba(255,255,255,0.08);
-    --chat-glow: none;
-    --chat-text: #FFFFFF;
-    --chat-text-muted: rgba(255,255,255,0.5);
-    --chat-accent: #6366F1;
-    --chat-accent-2: #818CF8;
-    --chat-bubble-ai-bg: #1A1A1A;
-    --chat-bubble-ai-border: rgba(255,255,255,0.08);
-    --chat-bubble-user-bg: #6366F1;
-  }
-
   html {
     background: var(--color-bg);
     color: var(--color-text);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
   }
 
   body {
@@ -65,7 +114,13 @@
 
   ::selection {
     background: var(--color-accent);
-    color: #FFFFFF;
+    color: var(--color-bg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -74,11 +129,12 @@
 
   /* prose-content is THE prose styling hook. All [slug].astro pages wrap
      <Content /> in <div class="prose-content">. Per AGENTS.md invariant #6,
-     new typography rules belong here — not as Tailwind utilities on elements. */
+     new typography rules belong here — not as Tailwind utilities on elements.
+     Colors are token-driven so dual-mode just works. */
   .prose-content {
     color: var(--color-text);
     line-height: 1.8;
-    font-size: 1rem;
+    font-size: 1.0625rem;
     font-family: var(--font-body);
   }
 
@@ -88,17 +144,17 @@
   .prose-content h4 {
     color: var(--color-text);
     font-family: var(--font-heading);
-    font-weight: 400;
+    font-weight: 500;
     margin-top: 1.8em;
     margin-bottom: 0.6em;
     line-height: 1.25;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
   }
 
-  .prose-content h1 { font-size: 2.25rem; font-weight: 400; }
-  .prose-content h2 { font-size: 1.875rem; }
-  .prose-content h3 { font-size: 1.5rem; }
-  .prose-content h4 { font-size: 1.25rem; }
+  .prose-content h1 { font-size: 2.25rem; }
+  .prose-content h2 { font-size: 1.75rem; }
+  .prose-content h3 { font-size: 1.4rem; }
+  .prose-content h4 { font-size: 1.2rem; }
 
   .prose-content p { margin-bottom: 1.1em; }
 
@@ -109,16 +165,13 @@
     text-decoration-thickness: 1px;
     transition: color 0.2s ease;
   }
-
-  .prose-content a:hover {
-    color: var(--color-accent-2);
-  }
+  .prose-content a:hover { color: var(--color-accent-2); }
 
   .prose-content code {
     background: var(--color-surface-2);
     color: var(--color-text);
-    padding: 0.15em 0.45em;
-    border-radius: 0.375rem;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
     font-size: 0.875em;
     font-family: var(--font-mono);
     font-weight: 500;
@@ -127,16 +180,15 @@
 
   .prose-content pre {
     background: var(--color-dark);
-    color: rgba(255,255,255,0.9);
+    color: var(--color-text);
     border: 1px solid var(--color-border);
-    border-radius: 0.75rem;
+    border-radius: 6px;
     padding: 1.25rem 1.5rem;
     overflow-x: auto;
     margin-bottom: 1.2em;
-    line-height: 1.65;
+    line-height: 1.6;
     font-family: var(--font-mono);
   }
-
   .prose-content pre code {
     background: none;
     padding: 0;
@@ -147,22 +199,21 @@
 
   .prose-content ul,
   .prose-content ol {
-    padding-left: 1.5em;
+    padding-left: 1.4em;
     margin-bottom: 1.1em;
   }
-
-  .prose-content li { margin-bottom: 0.35em; }
+  .prose-content li { margin-bottom: 0.4em; }
 
   .prose-content blockquote {
-    border-left: 3px solid var(--color-accent);
-    padding: 0.25em 0 0.25em 1.1em;
+    border-left: 2px solid var(--color-accent);
+    padding: 0.2em 0 0.2em 1.1em;
     color: var(--color-text-muted);
     margin: 1.3em 0;
-    font-style: italic;
+    font-style: normal;
   }
 
   .prose-content img {
-    border-radius: 0.75rem;
+    border-radius: 6px;
     max-width: 100%;
     border: 1px solid var(--color-border);
   }
@@ -170,7 +221,7 @@
   .prose-content canvas {
     display: block;
     max-width: 100%;
-    border-radius: 0.75rem;
+    border-radius: 6px;
     border: 1px solid var(--color-border);
     background: var(--color-surface-2);
   }
@@ -179,16 +230,14 @@
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 1.1em;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
   }
-
   .prose-content th,
   .prose-content td {
     border: 1px solid var(--color-border);
     padding: 0.55rem 0.85rem;
     text-align: left;
   }
-
   .prose-content th {
     background: var(--color-surface-2);
     color: var(--color-text);
@@ -201,25 +250,20 @@
     margin: 2.2em 0;
   }
 
-  .prose-content strong { color: var(--color-text); font-weight: 500; }
+  .prose-content strong { color: var(--color-text); font-weight: 600; }
   .prose-content em { color: var(--color-text); font-style: italic; }
 }
 
-/* ─── Chat layer (dark, premium) ──────────────────────────────────────────
-   Three variants: hero (full-screen homepage), dock (floating button),
-   fullscreen (/chat page). Dark aesthetic: deep black, indigo accent. */
-
-/* Bubble entrance + typing indicator */
-.chat-bubble-enter {
-  animation: chat-bubble-in 200ms ease-out;
-}
+/* ─── Chat layer visual helpers (used by ChatLayer + HeroOrb) ──────────── */
+.chat-bubble-enter { animation: chat-bubble-in 200ms ease-out; }
 @keyframes chat-bubble-in {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 .typing-dot {
-  width: 6px; height: 6px; border-radius: 50%; background: var(--chat-text-muted, rgba(255,255,255,0.5));
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--chat-text-muted);
   animation: typing-pulse 1.4s ease-in-out infinite;
 }
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
@@ -229,10 +273,9 @@
   30%           { opacity: 1;   transform: scale(1.2); }
 }
 
-/* Blinking cursor guide for chat input placeholder */
 .chat-cursor-blink {
   animation: chat-cursor-blink 1s step-end infinite;
-  color: var(--chat-accent, #6366F1);
+  color: var(--chat-accent);
   font-weight: 400;
   margin-left: 2px;
 }
@@ -241,40 +284,47 @@
   51%, 100% { opacity: 0; }
 }
 
-/* Example conversation bubbles — slightly muted to distinguish from real chat */
-.chat-example-bubble {
-  opacity: 0.75;
-}
+.chat-example-bubble { opacity: 0.75; }
 
-/* Custom scrollbar for chat message areas */
 [data-chat-messages]::-webkit-scrollbar { width: 4px; }
 [data-chat-messages]::-webkit-scrollbar-track { background: transparent; }
-[data-chat-messages]::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.2); border-radius: 2px; }
-[data-chat-messages]::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.4); }
+[data-chat-messages]::-webkit-scrollbar-thumb {
+  background: var(--color-accent-soft);
+  border-radius: 2px;
+}
+[data-chat-messages]::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .chat-bubble-enter { animation: none; }
-  .typing-dot        { animation: none; opacity: 0.6; }
+  .typing-dot { animation: none; opacity: 0.6; }
   .chat-cursor-blink { animation: none; opacity: 0.6; }
-  .scroll-reveal     { opacity: 1; transform: none; }
 }
 
-/* ─── Scroll reveal ──────────────────────────────────────────────────── */
+/* ─── Scroll reveal ─────────────────────────────────────────────────────── */
 .scroll-reveal {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1),
+              transform 0.7s cubic-bezier(0.16,1,0.3,1);
 }
 .scroll-reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* ─── Lenis smooth scroll ────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* ─── Lenis smooth scroll ───────────────────────────────────────────────── */
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-stopped { overflow: hidden; }
 
-@media (prefers-reduced-motion: reduce) {
-  .scroll-reveal { opacity: 1; transform: none; transition: none; }
+/* ─── HeroOrb circular mask clip ───────────────────────────────────────── */
+.orb-mask {
+  -webkit-mask-image: radial-gradient(circle at center, #000 64%, transparent 65%);
+          mask-image: radial-gradient(circle at center, #000 64%, transparent 65%);
 }

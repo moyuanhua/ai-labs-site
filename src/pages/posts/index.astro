@@ -8,60 +8,67 @@ const posts = (await getCollection('posts'))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
 const typeBadge = {
-  blog:    { label: '博客',  cls: 'bg-white/10 text-white/50 border-white/15' },
-  demo:    { label: 'Demo', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
-  product: { label: '产品',  cls: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
+  blog:    { label: 'blog',   accent: false },
+  demo:    { label: 'demo',   accent: true },
+  product: { label: 'product', accent: true },
 };
+
+const yearGroups: Record<string, typeof posts> = {};
+for (const p of posts) {
+  const y = String(p.data.date.getFullYear());
+  if (!yearGroups[y]) yearGroups[y] = [];
+  yearGroups[y].push(p);
+}
+const years = Object.keys(yearGroups).sort((a, b) => Number(b) - Number(a));
+
+const dateFmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
 ---
 
-<BaseLayout title="内容 — ai-labs" description="所有内容：博客、Demo、产品">
+<BaseLayout title="内容 · moyuanhua" description="所有内容：博客、Demo、产品">
 
-  <header class="pt-16 pb-12 text-center px-6 sm:px-10 lg:px-16 xl:px-24">
-    <p class="text-xs uppercase tracking-widest font-body font-medium text-white/30 mb-4">
-      内容 · {String(posts.length).padStart(2, '0')}
-    </p>
-    <h1 class="font-heading text-5xl font-normal text-white mb-4 tracking-tight">
-      内容
-    </h1>
-    <p class="font-body text-base sm:text-lg text-white/50 max-w-xl mx-auto leading-relaxed">
-      博客、Demo、产品——所有内容都在这里。
-    </p>
-  </header>
+  <section class="mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 pt-20 pb-12">
+    <h1 class="font-heading text-4xl sm:text-5xl tracking-tight text-text font-medium">观测日志</h1>
+    <p class="mt-4 text-text-muted max-w-[50ch] leading-relaxed">博客、demo、产品，按时间倒序排列。</p>
+  </section>
 
-  <section class="px-6 sm:px-10 lg:px-16 xl:px-24">
+  <section class="mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 pb-24">
     {posts.length === 0 ? (
-      <p class="font-body text-white/30 text-center py-20">— 暂无内容，敬请期待 —</p>
+      <p class="font-mono text-sm text-text-faint py-20 text-center">尚无内容。</p>
     ) : (
-      <div>
-        {posts.map(post => (
-          <a
-            href={`${BASE}posts/${post.id}`}
-            class="scroll-reveal group block mb-20 cursor-pointer"
-          >
-            <span class={`inline-block text-xs uppercase tracking-widest font-body font-medium px-2.5 py-0.5 rounded-full border mb-4 ${typeBadge[post.data.type].cls}`}>
-              {typeBadge[post.data.type].label}
-            </span>
-            <h2 class="text-3xl sm:text-4xl font-normal font-heading text-white group-hover:text-indigo-400 transition-colors duration-200 leading-tight mb-3">
-              {post.data.title}
-            </h2>
-            <p class="text-base font-body text-white/50 leading-relaxed mb-4 max-w-2xl">
-              {post.data.description}
-            </p>
-            <div class="flex items-center gap-3 flex-wrap">
-              <time class="text-sm font-body text-white/30">
-                {post.data.date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
-              </time>
-              {post.data.tags && post.data.tags.length > 0 && (
-                <div class="flex flex-wrap gap-1.5">
-                  {post.data.tags.map(tag => (
-                    <span class="inline-flex items-center text-xs font-medium font-body text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
+      <div class="space-y-16">
+        {years.map(year => (
+          <div class="scroll-reveal">
+            <div class="flex items-baseline gap-4 mb-6 border-b pb-2" style="border-color: var(--color-border);">
+              <span class="font-mono text-xs text-text-faint">{year}</span>
+              <span class="font-mono text-[0.65rem] text-text-faint uppercase tracking-wider">{yearGroups[year].length} 条</span>
             </div>
-          </a>
+            <div class="space-y-10">
+              {yearGroups[year].map(post => {
+                const badge = typeBadge[post.data.type];
+                const badgeStyle = badge.accent
+                  ? 'background: var(--color-accent-soft); color: var(--color-accent); border-color: var(--color-accent);'
+                  : 'background: var(--color-surface-2); color: var(--color-text-muted); border-color: var(--color-border);';
+                return (
+                  <a href={`${BASE}posts/${post.id}`} class="group grid grid-cols-12 gap-3 sm:gap-6 items-baseline cursor-pointer">
+                    <time class="col-span-3 sm:col-span-2 font-mono text-xs text-text-faint uppercase tracking-wider">
+                      {dateFmt(post.data.date)}
+                    </time>
+                    <div class="col-span-9 sm:col-span-2 flex items-center">
+                      <span class="text-[0.65rem] font-mono uppercase tracking-wider px-2 py-0.5 border rounded-[3px]" style={badgeStyle}>
+                        {badge.label}
+                      </span>
+                    </div>
+                    <div class="col-span-12 sm:col-span-7">
+                      <h2 class="font-heading text-xl sm:text-2xl tracking-tight text-text leading-snug group-hover:text-[var(--color-accent)] transition-colors">
+                        {post.data.title}
+                      </h2>
+                      <p class="mt-2 text-text-muted leading-relaxed sm:pr-8">{post.data.description}</p>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
         ))}
       </div>
     )}

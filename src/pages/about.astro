@@ -3,13 +3,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import about from '../data/about.json';
 
 type AboutItem = string | { label: string; url: string };
-type AboutSection = { eyebrow: string; title: string; items: AboutItem[]; isContact?: boolean };
+type AboutSection = { title: string; items: AboutItem[]; isContact?: boolean };
 
 const sections: AboutSection[] = [
-  { eyebrow: '现在',  title: '现在在做什么', items: about.now },
-  { eyebrow: '项目',  title: '最近的项目',   items: about.projects },
-  { eyebrow: '工具',  title: '技能与工具',   items: about.skills },
-  { eyebrow: '联系',  title: '联系方式',     items: about.contact, isContact: true },
+  { title: '现在',     items: about.now },
+  { title: '最近的项目', items: about.projects },
+  { title: '技能与工具', items: about.skills },
+  { title: '联系',     items: about.contact, isContact: true },
 ];
 
 const isEmpty = (s: AboutSection) => s.items.length === 0;
@@ -18,61 +18,46 @@ const isContactItem = (item: AboutItem): item is { label: string; url: string } 
 const allEmpty = sections.every(isEmpty);
 ---
 
-<BaseLayout title="关于 — ai-labs" description="关于我">
-  <article class="max-w-3xl mx-auto py-12 px-6 sm:px-10 lg:px-16 xl:px-24">
-    <header class="mb-16 text-center">
-      <p class="text-xs uppercase tracking-widest font-body font-medium text-white/50 mb-4">
-        关于
-      </p>
-      <h1 class="font-heading text-4xl font-normal text-white mb-4 tracking-tight">
-        关于
-      </h1>
-      <p class="font-body text-base sm:text-lg text-white/50 max-w-xl mx-auto leading-relaxed">
-        我是谁，我在做什么，我在用什么工具。
-      </p>
-    </header>
+<BaseLayout title="关于 · moyuanhua" description="关于 moyuanhua">
+
+  <article class="mx-auto max-w-[760px] px-6 sm:px-10 py-20">
+    <h1 class="font-heading text-4xl sm:text-5xl tracking-tight text-text font-medium mb-10">关于</h1>
 
     {allEmpty && (
-      <p class="font-body text-white/30 text-center py-12 italic">— 整页待补充 —</p>
+      <div class="space-y-8 py-12 border-y" style="border-color: var(--color-border);">
+        <p class="text-text-muted leading-relaxed max-w-[55ch]">内容待填。关于页与作品同体：_本项目_即简介本身。</p>
+        <pre class="font-mono text-xs text-text-faint p-4 rounded-[6px] overflow-x-auto" style="background: var(--color-surface); border: 1px solid var(--color-border);">src/data/about.json</pre>
+        <p class="text-sm text-text-muted">在 <code class="font-mono text-xs px-1.5 py-0.5 rounded-[3px]" style="background: var(--color-surface-2); border: 1px solid var(--color-border);">now</code> / <code class="font-mono text-xs px-1.5 py-0.5 rounded-[3px]" style="background: var(--color-surface-2); border: 1px solid var(--color-border);">projects</code> / <code class="font-mono text-xs px-1.5 py-0.5 rounded-[3px]" style="background: var(--color-surface-2); border: 1px solid var(--color-border);">skills</code> / <code class="font-mono text-xs px-1.5 py-0.5 rounded-[3px]" style="background: var(--color-surface-2); border: 1px solid var(--color-border);">contact</code> 数组里填字符串或对象即可。</p>
+      </div>
     )}
 
     <div class="space-y-16">
       {sections.map(section => (
-        <section class="scroll-reveal">
-          <p class="text-xs uppercase tracking-widest font-body font-medium text-white/50 mb-3">
-            {section.eyebrow}
-          </p>
-          <h2 class="font-heading text-2xl sm:text-3xl font-normal text-white mb-4">
-            {section.title}
-          </h2>
+        <section class="scroll-reveal {isEmpty(section) ? 'opacity-60' : ''}">
+          <h2 class="font-heading text-xl text-text font-medium mb-5">{section.title}</h2>
           {isEmpty(section) ? (
-            <p class="font-body text-white/30 italic">— 待补充 —</p>
+            <p class="font-mono text-xs text-text-faint">待补</p>
           ) : section.isContact ? (
-            <ul class="space-y-2 font-body text-sm">
+            <ul class="space-y-3 list-none p-0">
               {section.items.map(item => {
                 if (!isContactItem(item)) return null;
                 return (
-                  <li>
-                    <span class="text-white/50">{item.label}: </span>
+                  <li class="flex flex-wrap items-baseline gap-x-3">
+                    <span class="font-mono text-xs uppercase tracking-wider text-text-faint">{item.label}</span>
                     <a
                       href={item.url}
-                      class="text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition-colors duration-200 cursor-pointer"
+                      class="text-text hover:text-[var(--color-accent)] transition-colors break-all"
                       target="_blank"
                       rel="noopener noreferrer"
-                    >
-                      {item.url}
-                    </a>
+                    >{item.url}</a>
                   </li>
                 );
               })}
             </ul>
           ) : (
-            <ul class="font-body text-sm text-white/50 space-y-2 list-none">
+            <ul class="space-y-3 list-none p-0">
               {section.items.map(item => (
-                <li class="flex gap-2">
-                  <span class="text-indigo-400 shrink-0" aria-hidden="true">·</span>
-                  <span class="text-white/50">{String(item)}</span>
-                </li>
+                <li class="text-text-muted leading-relaxed pl-4 border-l" style="border-color: var(--color-border);">{String(item)}</li>
               ))}
             </ul>
           )}

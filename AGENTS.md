@@ -39,15 +39,13 @@ src/
 └── data/roadmap.json
 ```
 
-### Content collections (defined in `src/content.config.ts`)
+### Content collection (defined in `src/content.config.ts`)
 
-All three use `glob({ pattern: '**/*.md', base: ... })` loader. Slug = filename without `.md`.
+Single collection `posts` with `glob({ pattern: '**/*.md', base: './src/content/posts' })`. Slug = filename without `.md`. The `type: 'blog' | 'demo' | 'product'` field on each post partitions the feed (formerly three separate collections, now unified).
 
-- **blog** — `title`, `date` (coerced), `description` (required), `tags?`, `draft?` (default `false`)
-- **demos** — same schema as blog
-- **products** — adds `status: 'coming-soon' | 'beta' | 'live'` (default `'live'`), optional `url`, `github`
+- **posts** — `title`, `date` (coerced), `type` (enum, required), `description` (required), `tags?` (default `[]`), `draft?` (default `false`), `status?` (`'coming-soon' | 'beta' | 'live'`, products only), `url?`, `github?`
 
-**Schemas use `z.coerce.date()`** — frontmatter dates must be ISO format (`2024-06-01`).
+**Schema uses `z.coerce.date()`** — frontmatter dates must be ISO format (`2024-06-01`).
 
 ### Roadmap is JSON, not a collection
 
@@ -82,20 +80,32 @@ Content files use `.md` extension but the body is valid HTML (see `src/content/b
 
 `<script>` tags inside `.md` files execute on the client (Astro strips them to a JS island automatically). Demo `particle-gravity.md` is the reference example for inline JS.
 
-### 5. Status badge mapping is duplicated — keep them in sync
+### 5. Status badge mapping lives in `posts/[slug].astro` only
 
-`product.data.status` maps to a badge in **three** places that must agree:
-
-- `src/pages/index.astro` → `statusBadge()`
-- `src/pages/products/index.astro` → `badgeConfig`
-- `src/pages/products/[slug].astro` → `statusConfig`
-- `src/components/ContentCard.astro` → `badgeColors` (color classes only)
-
-Colors: `live` → green/emerald, `beta` → yellow, `coming-soon` → slate. Adding a new status requires updating all four.
+`post.data.status` is rendered by `statusConfig` in `src/pages/posts/[slug].astro`. Style is inline (`style={...}`) referencing CSS vars so dual-mode just works. Three states: `live` / `beta` / `coming-soon` — all use one accent color (`--color-accent`) for emphasis variants. Update here only.
 
 ### 6. `prose-content` is the prose styling hook
 
 All rendered content in `[slug].astro` pages is wrapped in `<div class="prose-content">`. Custom typography, code blocks, tables, blockquotes, and `<canvas>` styling live in `src/styles/global.css` under this class. New elements in markdown need CSS rules there, not Tailwind utilities on the element.
+
+### 7. Design tokens — dual-mode, single accent, 6px shape lock, Geist
+
+All visual tokens live in `src/styles/global.css`:
+- **Dual-mode**: `:root` defaults to light; `@media (prefers-color-scheme: dark)` overrides. `color-scheme: light dark` set on `<html>`. **Do not** introduce theme-specific Tailwind `dark:` variants — change CSS vars.
+- **Single accent**: `--color-accent` is `#0d9488` (light) / `#5eead4` (dark). All teal usage across pages must use this var (via `style="color: var(--color-accent)"` or `text-[var(--color-accent)]`). No emerald / amber / secondary accents.
+- **Fonts**: Geist (Sans + Mono) self-hosted via `@fontsource/geist` + `@fontsource/geist-mono` imported in `BaseLayout.astro`. No Google Fonts CDN link. `--font-heading` and `--font-body` are both Geist. Mono is Geist Mono.
+- **Shape lock**: `rounded-[6px]` for cards / chips / inputs / buttons. `rounded-[3px]` for tiny inline chips. `rounded-full` ONLY on the orb containers (`HeroOrb.astro`, `ChatLayer.astro` canvas + dock button) — they are天体, so圆 is the documented exception. Anything else圆 → fix.
+- **Chat-local tokens** (`--chat-*`) are separate from `--color-*` so Canvas code in `ChatLayer.astro` + `HeroOrb.astro` can read them via `getComputedStyle()` at init + on `MutationObserver(documentElement, {attributeFilter:['class','data-theme']})` + `prefers-color-scheme` change.聊天 canvas 用 token 颜色，不硬编码 hex。
+
+### 8. AI orb (Canvas) is the brand asset — keep it token-driven
+
+`ChatLayer.astro` (3 variants: hero / dock / fullscreen) and `HeroOrb.astro` (mini circular-masked hero) share the orb visual language. Canvas code must:
+- Read color tokens at init via `readTokens()` helper.
+- Subscribe to scheme change (`matchMedia('(prefers-color-scheme: dark)')`) + `class`/`data-theme` attribute mutation.
+- Pause `requestAnimationFrame` when canvas is offscreen (IntersectionObserver).
+- Honor `prefers-reduced-motion` (no breathe, no jet spawn, no shockwaves).
+- Never hardcode `rgba(99,102,241,...)` or `rgba(165,243,252,...)` — all through `col('accent' | 'accent2' | 'soft', alpha)` helper.
+- Astro `<ClientRouter />` is enabled. The orb layer carries `transition:name="chat-layer"` for morph between hero / dock / fullscreen. Do NOT remove this transition name.
 
 ## Deployment (`.github/workflows/deploy.yml`)
 
