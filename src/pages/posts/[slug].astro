@@ -21,6 +21,7 @@ const statusBadge = post.data.status ? statusConfig[post.data.status] : null;
 
 <BaseLayout title={`${post.data.title} · moyuanhua`} description={post.data.description}>
   <article class="scroll-reveal max-w-3xl mx-auto py-16 px-6 sm:px-10 lg:px-16 xl:px-24">
+    <div class="relative bg-bg/85 backdrop-blur-md rounded-[6px] border border-border p-6 sm:p-10">
     <a
       href={`${BASE}posts`}
       class="inline-flex items-center gap-1 font-mono text-xs text-text-muted hover:text-[var(--color-accent)] transition-colors"
@@ -88,6 +89,7 @@ const statusBadge = post.data.status ? statusConfig[post.data.status] : null;
 
     <div class="prose-content">
       <Content />
+    </div>
     </div>
   </article>
 </BaseLayout>

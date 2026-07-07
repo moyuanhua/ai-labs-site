@@ -14,8 +14,6 @@ const STATUS_BG = 'background: var(--color-accent);';
     transition:name="chat-layer"
     class="chat-hero relative flex flex-col h-full bg-[var(--color-bg)] overflow-hidden"
   >
-    <canvas data-chat-orb class="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true"></canvas>
-
     <div class="relative z-10 flex-1 flex flex-col justify-center w-full">
       <div class="mx-auto max-w-[1400px] w-full px-6 sm:px-10 lg:px-16 py-8">
         <div class="mb-6">
@@ -89,340 +87,22 @@ const STATUS_BG = 'background: var(--color-accent);';
     function readTokens() {
       const probe = getComputedStyle(document.documentElement);
       return {
-        text:       probe.getPropertyValue('--chat-text').trim(),
-        muted:      probe.getPropertyValue('--chat-text-muted').trim(),
-        accent:     probe.getPropertyValue('--chat-accent').trim(),
-        accent2:    probe.getPropertyValue('--chat-accent-2').trim(),
-        accentSoft: probe.getPropertyValue('--chat-accent-soft').trim(),
-        bg:         probe.getPropertyValue('--chat-bg').trim(),
-        surface:    probe.getPropertyValue('--color-surface-2').trim(),
-        dark:       probe.getPropertyValue('--color-dark').trim(),
-        border:     probe.getPropertyValue('--chat-border').trim(),
+        accent:  probe.getPropertyValue('--chat-accent').trim(),
+        bg:      probe.getPropertyValue('--chat-bg').trim(),
+        surface: probe.getPropertyValue('--color-surface-2').trim(),
+        border:  probe.getPropertyValue('--chat-border').trim(),
+        text:    probe.getPropertyValue('--chat-text').trim(),
+        muted:   probe.getPropertyValue('--chat-text-muted').trim(),
       };
     }
-
-    function hexToRgb(hex) {
-      if (!hex) return null;
-      const m = hex.replace('#', '').match(/^([0-9a-f]{6}|[0-9a-f]{3})$/i);
-      if (!m) return null;
-      let h = m[1];
-      if (h.length === 3) h = h.split('').map(c => c + c).join('');
-      const v = parseInt(h, 16);
-      return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
-    }
-    function rgbaList(hex, alpha) {
-      const rgb = hexToRgb(hex);
-      if (!rgb) return null;
-      return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
-    }
-    function parseRgba(str) {
-      const m = str.match(/rgba?\(([^)]+)\)/);
-      if (!m) return null;
-      const parts = m[1].split(',').map(p => p.trim());
-      return { r: parseFloat(parts[0]), g: parseFloat(parts[1]), b: parseFloat(parts[2]) };
-    }
-
-    let orbState = 'idle';
-    let orbCanvases = [];
-    let currentTokens = null;
-
-    function initOrb() {
-      orbCanvases = Array.from(document.querySelectorAll('[data-chat-orb]'));
-      orbCanvases.forEach(canvas => {
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        let w = canvas.clientWidth;
-        let h = canvas.clientHeight;
-        const dpr = window.devicePixelRatio || 1;
-
-        function resize() {
-          w = canvas.clientWidth;
-          h = canvas.clientHeight;
-          canvas.width = w * dpr;
-          canvas.height = h * dpr;
-          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        }
-        resize();
-
-        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        let time = 0;
-        let running = true;
-
-        const bgStars = [];
-        for (let i = 0; i < 150; i++) {
-          bgStars.push({
-            x: Math.random() * w, y: Math.random() * h,
-            vx: (Math.random() - 0.5) * 0.15, vy: (Math.random() - 0.5) * 0.15,
-            size: Math.random() * 1.5 + 0.3,
-            alpha: Math.random() * 0.4 + 0.1,
-            twinkle: Math.random() * Math.PI * 2,
-          });
-        }
-
-        const nebulae = [];
-        for (let i = 0; i < 3; i++) {
-          nebulae.push({
-            x: Math.random() * w, y: Math.random() * h,
-            r: Math.min(w, h) * (0.2 + Math.random() * 0.3),
-          });
-        }
-
-        const ringRadii = [1.5, 2.0, 2.5, 3.2, 3.9, 4.6, 5.0, 5.5];
-        const ringRyRatio = [0.3, 0.35, 0.4, 0.5, 0.55, 0.65, 0.7, 0.75];
-        const ringRotSpeed = [0.2, -0.15, 0.12, -0.1, 0.08, -0.07, 0.06, -0.05];
-        const ringTilt = [0.3, -0.25, 0.2, -0.15, 0.12, -0.1, 0.08, -0.06];
-        const ringWidths = [1.5, 1.5, 1, 1, 1, 1, 1, 1];
-
-        const diskParticles = [];
-        for (let i = 0; i < 80; i++) {
-          const ringIdx = i % 8;
-          diskParticles.push({
-            angle: Math.random() * Math.PI * 2,
-            ringIdx,
-            speed: 0.004 - ringIdx * 0.0005 + Math.random() * 0.002,
-            size: 1.5 - ringIdx * 0.12 + Math.random() * 0.8,
-            opacity: 0.6 - ringIdx * 0.07 + Math.random() * 0.2,
-          });
-        }
-
-        const jets = [];
-        const jetAxisAngle = -Math.PI / 2 + 0.3;
-        let jetSpawnAccum = 0;
-
-        const shockwaves = [];
-        let lastShockwaveTime = 0;
-
-        function col(which, alpha) {
-          const t = currentTokens;
-          if (!t) return `rgba(255,255,255,${alpha})`;
-          const accentStr = which === 'accent' ? t.accent
-                          : which === 'accent2' ? t.accent2
-                          : which === 'soft' ? t.accentSoft
-                          : t.accent;
-          if (accentStr && accentStr.startsWith('#')) return rgbaList(accentStr, alpha);
-          if (accentStr && accentStr.startsWith('rgba')) {
-            const p = parseRgba(accentStr);
-            if (p) return `rgba(${p.r}, ${p.g}, ${p.b}, ${alpha})`;
-          }
-          return `rgba(165,243,252,${alpha})`;
-        }
-        function diskColor(idx, alpha) {
-          const inner = idx < 2;
-          const mid = idx >= 2 && idx < 5;
-          return inner ? col('accent2', alpha) : mid ? col('accent', alpha) : col('soft', alpha);
-        }
-
-        function draw() {
-          if (!running) return;
-          ctx.clearRect(0, 0, w, h);
-          time += 0.016;
-
-          const cx = w * 0.65;
-          const cy = h * 0.5;
-          const baseR = Math.min(w, h) * 0.15;
-
-          const breatheSpd = reduce ? 0 : (orbState === 'idle' ? 0.5 : orbState === 'typing' ? 1.5 : 3.0);
-          const breatheAmp = reduce ? 0 : (orbState === 'idle' ? 0.03 : orbState === 'typing' ? 0.08 : 0.15);
-          const breathe = 1 + Math.sin(time * breatheSpd) * breatheAmp;
-          const r = Math.max(1, baseR * breathe);
-
-          const glowAlpha = orbState === 'idle' ? 0.08 : orbState === 'typing' ? 0.15 : 0.25;
-          const orbitSpeed = reduce ? 0.3 : (orbState === 'idle' ? 1 : orbState === 'typing' ? 2.5 : 5);
-          const twinkleSpeed = orbState === 'idle' ? 0.02 : orbState === 'typing' ? 0.035 : 0.05;
-          const rimBrightness = orbState === 'idle' ? 1 : orbState === 'typing' ? 1.3 : 1.6 + Math.sin(time * 8) * 0.2;
-
-          ctx.globalCompositeOperation = 'lighter';
-          nebulae.forEach(n => {
-            const nr = Math.max(1, n.r);
-            const ng = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, nr);
-            const acc = col('accent', 0.05) || 'rgba(99,102,241,0.05)';
-            ng.addColorStop(0, acc);
-            ng.addColorStop(0.5, col('accent', 0.03) || 'rgba(99,102,241,0.03)');
-            ng.addColorStop(1, col('accent', 0) || 'rgba(99,102,241,0)');
-            ctx.fillStyle = ng;
-            ctx.beginPath();
-            ctx.arc(n.x, n.y, nr, 0, Math.PI * 2);
-            ctx.fill();
-          });
-
-          bgStars.forEach(p => {
-            p.x += p.vx; p.y += p.vy;
-            p.twinkle += twinkleSpeed;
-            if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
-            if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
-            const a = p.alpha * (0.5 + Math.sin(p.twinkle) * 0.5);
-            ctx.fillStyle = `rgba(255, 255, 255, ${a})`;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
-          });
-
-          const glowR = Math.max(1, baseR * 8);
-          const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowR);
-          glow.addColorStop(0, col('accent', glowAlpha));
-          glow.addColorStop(0.3, col('accent2', glowAlpha * 0.5));
-          glow.addColorStop(0.6, col('soft', glowAlpha * 0.15));
-          glow.addColorStop(1, col('soft', 0));
-          ctx.fillStyle = glow;
-          ctx.beginPath();
-          ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
-          ctx.fill();
-
-          for (let i = 0; i < 8; i++) {
-            const ringR = Math.max(1, baseR * ringRadii[i]);
-            const ringRy = Math.max(1, ringR * ringRyRatio[i]);
-            const rot = time * ringRotSpeed[i] * orbitSpeed;
-            ctx.strokeStyle = diskColor(i, 0.15);
-            ctx.lineWidth = ringWidths[i];
-            ctx.beginPath();
-            ctx.ellipse(cx, cy, ringR, ringRy, rot + ringTilt[i], 0, Math.PI * 2);
-            ctx.stroke();
-          }
-
-          diskParticles.forEach(p => {
-            p.angle += p.speed * orbitSpeed;
-            const ringR = Math.max(1, baseR * ringRadii[p.ringIdx]);
-            const ringRy = Math.max(1, ringR * ringRyRatio[p.ringIdx]);
-            const rot = time * ringRotSpeed[p.ringIdx] * orbitSpeed;
-            const tilt = ringTilt[p.ringIdx];
-            const cosR = Math.cos(rot + tilt), sinR = Math.sin(rot + tilt);
-            const lx = Math.cos(p.angle) * ringR;
-            const ly = Math.sin(p.angle) * ringRy;
-            const px = cx + lx * cosR - ly * sinR;
-            const py = cy + lx * sinR + ly * cosR;
-            const ta = p.angle - p.speed * orbitSpeed * 4;
-            const tlx = Math.cos(ta) * ringR, tly = Math.sin(ta) * ringRy;
-            const tpx = cx + tlx * cosR - tly * sinR;
-            const tpy = cy + tlx * sinR + tly * cosR;
-            ctx.strokeStyle = diskColor(p.ringIdx, p.opacity * 0.4);
-            ctx.lineWidth = p.size * 0.8;
-            ctx.beginPath(); ctx.moveTo(tpx, tpy); ctx.lineTo(px, py); ctx.stroke();
-            ctx.fillStyle = diskColor(p.ringIdx, p.opacity);
-            ctx.beginPath(); ctx.arc(px, py, Math.max(0.5, p.size), 0, Math.PI * 2); ctx.fill();
-            const haloMul = p.ringIdx < 2 ? 3 : p.ringIdx < 5 ? 2 : 1.5;
-            ctx.fillStyle = diskColor(p.ringIdx, p.opacity * 0.25);
-            ctx.beginPath(); ctx.arc(px, py, Math.max(1, p.size * haloMul), 0, Math.PI * 2); ctx.fill();
-          });
-
-          ctx.globalCompositeOperation = 'source-over';
-          const coreR = Math.max(1, r * 1.3);
-          const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
-          const t = currentTokens;
-          coreGrad.addColorStop(0, 'rgba(0, 0, 0, 1)');
-          coreGrad.addColorStop(0.46, 'rgba(0, 0, 0, 0.9)');
-          const rimA = Math.min(1, 0.8 * rimBrightness);
-          coreGrad.addColorStop(0.77, col('accent', rimA));
-          coreGrad.addColorStop(1, col('accent', 0));
-          ctx.fillStyle = coreGrad;
-          ctx.beginPath(); ctx.arc(cx, cy, coreR, 0, Math.PI * 2); ctx.fill();
-
-          ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-          ctx.beginPath(); ctx.arc(cx, cy, Math.max(1, r * 0.7), 0, Math.PI * 2); ctx.fill();
-
-          ctx.globalCompositeOperation = 'lighter';
-          const rimGlowR = Math.max(1, r * 1.15);
-          const rimInnerR = Math.max(1, r * 0.95);
-          const rimGlow = ctx.createRadialGradient(cx, cy, rimInnerR, cx, cy, rimGlowR);
-          rimGlow.addColorStop(0, col('accent', 0));
-          rimGlow.addColorStop(0.5, col('accent', Math.min(1, 0.6 * rimBrightness)));
-          rimGlow.addColorStop(1, col('accent', 0));
-          ctx.fillStyle = rimGlow;
-          ctx.beginPath(); ctx.arc(cx, cy, rimGlowR, 0, Math.PI * 2); ctx.fill();
-
-          ctx.strokeStyle = col('accent', Math.min(1, 0.9 * rimBrightness));
-          ctx.lineWidth = 1.5;
-          ctx.beginPath(); ctx.arc(cx, cy, Math.max(1, r), 0, Math.PI * 2); ctx.stroke();
-
-          if (orbState === 'replying') {
-            const flash = 0.25 + Math.sin(time * 6) * 0.15;
-            ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, Math.min(1, flash))})`;
-            ctx.beginPath(); ctx.arc(cx, cy, Math.max(1, r * 0.75), 0, Math.PI * 2); ctx.fill();
-          }
-
-          const jetTot = reduce ? 0 : (orbState === 'idle' ? 20 : orbState === 'typing' ? 40 : 60);
-          const jetSpd = orbState === 'idle' ? 1.0 : orbState === 'typing' ? 2.0 : 3.5;
-          jetSpawnAccum = Math.min(jetSpawnAccum + jetTot / 80, 5);
-          while (jetSpawnAccum >= 1 && jets.length < 70) {
-            jetSpawnAccum -= 1;
-            const up = Math.random() < 0.5;
-            const ang = up ? jetAxisAngle : jetAxisAngle + Math.PI;
-            const spread = (Math.random() - 0.5) * 0.2;
-            const v = jetSpd * (0.7 + Math.random() * 0.6);
-            const sx = cx + Math.cos(ang) * Math.max(1, r);
-            const sy = cy + Math.sin(ang) * Math.max(1, r);
-            jets.push({ x: sx, y: sy, vx: Math.cos(ang + spread) * v, vy: Math.sin(ang + spread) * v,
-              life: 0, maxLife: 60 + Math.random() * 40, size: 1 + Math.random() * 1.5,
-              prevX: sx, prevY: sy });
-          }
-          for (let i = jets.length - 1; i >= 0; i--) {
-            const j = jets[i];
-            j.prevX = j.x; j.prevY = j.y; j.x += j.vx; j.y += j.vy; j.life++;
-            const op = Math.max(0, 1 - j.life / j.maxLife) * 0.8;
-            ctx.strokeStyle = `rgba(255, 255, 255, ${op * 0.6})`;
-            ctx.lineWidth = j.size;
-            ctx.beginPath(); ctx.moveTo(j.prevX, j.prevY); ctx.lineTo(j.x, j.y); ctx.stroke();
-            ctx.fillStyle = `rgba(255, 255, 255, ${op})`;
-            ctx.beginPath(); ctx.arc(j.x, j.y, Math.max(0.5, j.size), 0, Math.PI * 2); ctx.fill();
-            if (j.life >= j.maxLife || j.x < -50 || j.x > w + 50 || j.y < -50 || j.y > h + 50) jets.splice(i, 1);
-          }
-
-          if (reduce) {
-            // skip shockwaves
-          } else if (orbState === 'replying' && time - lastShockwaveTime > 1) {
-            shockwaves.push({ r: baseR * 1.2, alpha: 0.6 });
-            lastShockwaveTime = time;
-          }
-          for (let i = shockwaves.length - 1; i >= 0; i--) {
-            const sw = shockwaves[i];
-            sw.r += 2.5; sw.alpha *= 0.985;
-            const swR = Math.max(1, sw.r);
-            ctx.strokeStyle = col('accent', Math.max(0, sw.alpha));
-            ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.arc(cx, cy, swR, 0, Math.PI * 2); ctx.stroke();
-            if (sw.r > baseR * 6 || sw.alpha < 0.01) shockwaves.splice(i, 1);
-          }
-
-          ctx.globalCompositeOperation = 'source-over';
-          requestAnimationFrame(draw);
-        }
-
-        // Pause when offscreen
-        const io = new IntersectionObserver((entries) => {
-          entries.forEach(e => {
-            running = e.isIntersecting;
-            if (running) requestAnimationFrame(draw);
-          });
-        });
-        io.observe(canvas);
-
-        const reduceMq = window.matchMedia('(prefers-reduced-motion: reduce)');
-        reduceMq.addEventListener?.('change', () => { running = !reduceMq.matches; if (running) requestAnimationFrame(draw); });
-
-        const ro = new ResizeObserver(resize);
-        ro.observe(canvas);
-
-        currentTokens = readTokens();
-        requestAnimationFrame(draw);
-      });
-    }
-
-    function setOrbState(s) { orbState = s; }
-
-    function refreshTokens() {
-      currentTokens = readTokens();
-    }
-    const csObserver = new MutationObserver(refreshTokens);
-    csObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] });
-    const colorSchemeMq = window.matchMedia('(prefers-color-scheme: dark)');
-    colorSchemeMq.addEventListener?.('change', refreshTokens);
 
     function getHistory() {
       try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
       catch { return []; }
     }
-    function saveHistory(h) { localStorage.setItem(STORAGE_KEY, JSON.stringify(h)); }
+    function saveHistory(h: any[]) { localStorage.setItem(STORAGE_KEY, JSON.stringify(h)); }
 
-    function createBubble(role, text) {
+    function createBubble(role: string, text: string) {
       const div = document.createElement('div');
       const tokens = readTokens();
       if (role === 'user') {
@@ -451,7 +131,7 @@ const STATUS_BG = 'background: var(--color-accent);';
       return div;
     }
 
-    function createExampleBubble(role, text) {
+    function createExampleBubble(role: string, text: string) {
       const b = createBubble(role, text);
       b.classList.add('chat-example-bubble');
       b.setAttribute('data-example', 'true');
@@ -460,7 +140,7 @@ const STATUS_BG = 'background: var(--color-accent);';
 
     function initChat() {
       const messagesEl = document.querySelector('[data-chat-messages]');
-      const inputEl = document.querySelector('[data-chat-input]');
+      const inputEl = document.querySelector('[data-chat-input]') as HTMLInputElement | null;
       const sendBtn = document.querySelector('[data-chat-send]');
       const placeholderEl = document.querySelector('[data-chat-placeholder]');
       if (!messagesEl || !inputEl || !sendBtn) return;
@@ -476,7 +156,7 @@ const STATUS_BG = 'background: var(--color-accent);';
 
       function updatePlaceholder() {
         if (!placeholderEl) return;
-        placeholderEl.style.display = (inputEl.value !== '' || document.activeElement === inputEl) ? 'none' : '';
+        placeholderEl.style.display = (inputEl!.value !== '' || document.activeElement === inputEl) ? 'none' : '';
       }
       inputEl.addEventListener('focus', updatePlaceholder);
       inputEl.addEventListener('blur', updatePlaceholder);
@@ -484,31 +164,31 @@ const STATUS_BG = 'background: var(--color-accent);';
       updatePlaceholder();
 
       function send() {
-        const text = inputEl.value.trim();
+        const text = inputEl!.value.trim();
         if (!text) return;
-        messagesEl.querySelectorAll('[data-example="true"]').forEach(el => el.remove());
-        messagesEl.appendChild(createBubble('user', text));
-        setOrbState('typing');
+        messagesEl!.querySelectorAll('[data-example="true"]').forEach(el => el.remove());
+        messagesEl!.appendChild(createBubble('user', text));
+        (window as any).__MOYUANHUA_orbState = 'typing';
         const hist = getHistory();
         hist.push({ role: 'user', text, ts: Date.now() });
         saveHistory(hist);
-        inputEl.value = '';
+        inputEl!.value = '';
         updatePlaceholder();
-        messagesEl.scrollTop = messagesEl.scrollHeight;
+        messagesEl!.scrollTop = messagesEl!.scrollHeight;
 
         setTimeout(() => {
           const typing = createTypingIndicator();
-          setOrbState('replying');
-          messagesEl.appendChild(typing);
-          messagesEl.scrollTop = messagesEl.scrollHeight;
+          (window as any).__MOYUANHUA_orbState = 'replying';
+          messagesEl!.appendChild(typing);
+          messagesEl!.scrollTop = messagesEl!.scrollHeight;
           setTimeout(() => {
             typing.remove();
-            setOrbState('idle');
-            messagesEl.appendChild(createBubble('ai', FAKE_AI_REPLY));
+            (window as any).__MOYUANHUA_orbState = 'idle';
+            messagesEl!.appendChild(createBubble('ai', FAKE_AI_REPLY));
             const h2 = getHistory();
             h2.push({ role: 'ai', text: FAKE_AI_REPLY, ts: Date.now() });
             saveHistory(h2);
-            messagesEl.scrollTop = messagesEl.scrollHeight;
+            messagesEl!.scrollTop = messagesEl!.scrollHeight;
           }, 1500);
         }, 300);
       }
@@ -520,14 +200,13 @@ const STATUS_BG = 'background: var(--color-accent);';
     }
 
     function initDockDot() {
-      const dot = document.querySelector('.chat-dock-dot');
+      const dot = document.querySelector('.chat-dock-dot') as HTMLElement | null;
       if (!dot) return;
       dot.style.display = getHistory().length > 0 ? 'block' : 'none';
     }
 
     initChat();
     initDockDot();
-    initOrb();
-    document.addEventListener('astro:page-load', () => { initChat(); initDockDot(); initOrb(); });
+    document.addEventListener('astro:page-load', () => { initChat(); initDockDot(); });
   })();
 </script>

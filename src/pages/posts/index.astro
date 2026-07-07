@@ -26,12 +26,13 @@ const dateFmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day
 
 <BaseLayout title="内容 · moyuanhua" description="所有内容：博客、Demo、产品">
 
-  <section class="mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 pt-20 pb-12">
+  <div class="relative bg-bg/85 backdrop-blur-md rounded-[6px] border border-border mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 my-12 py-10">
+  <section class="pt-8 pb-12">
     <h1 class="font-heading text-4xl sm:text-5xl tracking-tight text-text font-medium">观测日志</h1>
     <p class="mt-4 text-text-muted max-w-[50ch] leading-relaxed">博客、demo、产品，按时间倒序排列。</p>
   </section>
 
-  <section class="mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 pb-24">
+  <section class="pb-24">
     {posts.length === 0 ? (
       <p class="font-mono text-sm text-text-faint py-20 text-center">尚无内容。</p>
     ) : (
@@ -73,4 +74,5 @@ const dateFmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day
       </div>
     )}
   </section>
+  </div>
 </BaseLayout>

@@ -19,12 +19,13 @@ const fmt = (s?: string) => s || '';
 
 <BaseLayout title="路线图 · moyuanhua" description="在动、在案、已 launch">
 
-  <section class="mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 pt-20 pb-12">
+  <div class="relative bg-bg/85 backdrop-blur-md rounded-[6px] border border-border mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 my-12 py-10">
+  <section class="pt-8 pb-12">
     <h1 class="font-heading text-4xl sm:text-5xl tracking-tight text-text font-medium">路线图</h1>
     <p class="mt-4 text-text-muted max-w-[50ch] leading-relaxed">在做什么、计划做什么、已经交付什么。</p>
   </section>
 
-  <section class="mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 pb-24">
+  <section class="pb-24">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
       {roadmap.columns.map(col => {
         const st = colStyle[col.id] ?? colStyle['planned'];
@@ -65,6 +66,7 @@ const fmt = (s?: string) => s || '';
       })}
     </div>
   </section>
+  </div>
 
   <style is:global>
     @keyframes pulse-dot {
