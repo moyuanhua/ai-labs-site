@@ -13,9 +13,11 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
-  chatVariant?: 'hero' | 'dock' | 'fullscreen';
+  chatVariant?: 'hero' | 'dock';
+  hideNav?: boolean;
+  hideFooter?: boolean;
 }
-const { title, description = 'moyuanhua 的个人站点：写作、Demo、AI 实验', chatVariant = 'dock' } = Astro.props;
+const { title, description = 'moyuanhua 的个人站点：写作、Demo、AI 实验', chatVariant = 'dock', hideNav = false, hideFooter = false } = Astro.props;
 const BASE = import.meta.env.BASE_URL;
 const navLinks = [
   { href: `${BASE}posts`,   label: '内容' },
@@ -73,53 +75,54 @@ const year = new Date().getFullYear();
   </script>
 </head>
 <body class="bg-bg text-text min-h-screen flex flex-col antialiased font-body overflow-x-hidden">
-  <header class="sticky top-0 z-50 bg-bg/85 backdrop-blur-md border-b border-border">
-    <nav class="mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 h-16 flex items-center justify-between gap-4">
-      <a
-        href={BASE}
-        class="font-heading text-lg font-semibold tracking-tight text-text hover:text-accent transition-colors duration-200"
-      >
-        moyuanhua
-      </a>
-      <ul class="flex items-center gap-5">
-        {navLinks.map(link => (
-          <li>
-            <a
-              href={link.href}
-              aria-current={isActive(link.href) ? 'page' : undefined}
-              class={`relative text-sm font-medium transition-colors duration-200 ${
-                isActive(link.href)
-                  ? 'text-text'
-                  : 'text-text-muted hover:text-text'
-              }`}
-            >
-              {link.label}
-              {link.soon && (
-                <span class="ml-1 text-[0.6rem] uppercase tracking-wider text-accent font-mono">soon</span>
-              )}
-              {isActive(link.href) && (
-                <span class="absolute -bottom-[18px] left-0 right-0 h-[2px] bg-accent" aria-hidden="true"></span>
-              )}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  </header>
+  {!hideNav && (
+    <header class="sticky top-0 z-50 bg-bg/85 backdrop-blur-md border-b border-border">
+      <nav class="mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 h-16 flex items-center justify-between gap-4">
+        <a
+          href={BASE}
+          class="font-heading text-lg font-semibold tracking-tight text-text hover:text-accent transition-colors duration-200"
+        >
+          moyuanhua
+        </a>
+        <ul class="flex items-center gap-5">
+          {navLinks.map(link => (
+            <li>
+              <a
+                href={link.href}
+                aria-current={isActive(link.href) ? 'page' : undefined}
+                class={`relative text-sm font-medium transition-colors duration-200 ${
+                  isActive(link.href)
+                    ? 'text-text'
+                    : 'text-text-muted hover:text-text'
+                }`}
+              >
+                {link.label}
+                {!link.soon && isActive(link.href) && (
+                  <span class="absolute -bottom-[18px] left-0 right-0 h-[2px] bg-accent" aria-hidden="true"></span>
+                )}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </header>
+  )}
 
   <main class="flex-1 w-full">
     <slot />
   </main>
 
-  <footer class="border-t border-border mt-20">
-    <div class="mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 py-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-      <p class="font-mono text-xs text-text-muted">© {year} moyuanhua</p>
-      <a
-        href={`mailto:hello@moyuanhua.dev`}
-        class="text-xs font-mono text-text-muted hover:text-accent transition-colors"
-      >hello@moyuanhua.dev</a>
-    </div>
-  </footer>
+  {!hideFooter && (
+    <footer class="border-t border-border mt-20">
+      <div class="mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 py-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <p class="font-mono text-xs text-text-muted">© {year} moyuanhua</p>
+        <a
+          href={`mailto:hello@moyuanhua.dev`}
+          class="text-xs font-mono text-text-muted hover:text-accent transition-colors"
+        >hello@moyuanhua.dev</a>
+      </div>
+    </footer>
+  )}
 
   {chatVariant === 'dock' && <ChatLayer variant="dock" />}
 </body>

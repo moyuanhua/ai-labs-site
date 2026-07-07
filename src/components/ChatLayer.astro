@@ -1,6 +1,6 @@
 ---
 interface Props {
-  variant: 'hero' | 'dock' | 'fullscreen';
+  variant: 'hero' | 'dock';
 }
 const { variant } = Astro.props;
 const BASE = import.meta.env.BASE_URL;
@@ -12,33 +12,27 @@ const STATUS_BG = 'background: var(--color-accent);';
 {variant === 'hero' && (
   <div
     transition:name="chat-layer"
-    class="chat-hero relative flex flex-col h-[calc(100dvh-64px)] bg-[var(--color-dark)] overflow-hidden"
+    class="chat-hero relative flex flex-col h-full bg-[var(--color-bg)] overflow-hidden"
   >
     <canvas data-chat-orb class="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true"></canvas>
 
-    <div class="relative z-10 shrink-0 px-6 sm:px-10 lg:px-16 pt-6 pb-4 flex items-center justify-between border-b" style="border-color: var(--chat-border);">
-      <span class="font-heading text-2xl sm:text-3xl font-semibold tracking-tight" style="color: var(--chat-text);">moyuanhua</span>
-      <div class="flex items-center gap-2 text-sm" style="color: var(--chat-text-muted);">
-        <span aria-hidden="true" class={STATUS_DOT} style={STATUS_BG}></span>
-        <span>在案</span>
+    <div class="relative z-10 flex-1 flex flex-col justify-center w-full">
+      <div class="mx-auto max-w-[1400px] w-full px-6 sm:px-10 lg:px-16 py-8">
+        <div class="mb-6">
+          <p class="font-heading text-xl sm:text-2xl font-medium mb-2" style="color: var(--chat-text);">
+            你好，我是 moyuanhua 的 AI
+          </p>
+          <p class="font-body text-sm sm:text-base leading-relaxed max-w-lg" style="color: var(--chat-text-muted);">
+            问我的工作、demo、写作，或路线图。我读过这个站上的全部内容。
+          </p>
+        </div>
+
+        <div data-chat-messages class="flex-1 min-h-[160px] max-h-[40vh] overflow-y-auto space-y-3 pr-2"></div>
       </div>
     </div>
 
-    <div class="relative z-10 flex-1 flex flex-col justify-center w-full px-6 sm:px-10 lg:px-16 py-8">
-      <div class="mb-6">
-        <p class="font-heading text-xl sm:text-2xl font-medium mb-2" style="color: var(--chat-text);">
-          你好，我是 moyuanhua 的 AI
-        </p>
-        <p class="font-body text-sm sm:text-base leading-relaxed max-w-lg" style="color: var(--chat-text-muted);">
-          问我的工作、demo、写作，或路线图。我读过这个站上的全部内容。
-        </p>
-      </div>
-
-      <div data-chat-messages class="flex-1 min-h-[160px] max-h-[40vh] overflow-y-auto space-y-3 pr-2"></div>
-    </div>
-
-    <div class="relative z-10 shrink-0 border-t" style="border-color: var(--chat-border); background: var(--color-surface);">
-      <div class="w-full px-6 sm:px-10 lg:px-16 py-5 flex gap-3 items-center">
+    <div class="relative z-10 shrink-0 bg-[var(--color-surface)] border-t" style="border-color: var(--chat-border);">
+      <div class="mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 py-5 flex gap-3 items-center">
         <div class="relative flex-1">
           <span data-chat-placeholder class="chat-placeholder absolute inset-0 flex items-center pointer-events-none text-sm sm:text-base font-body select-none" style="color: var(--chat-text-muted);">
             随便问点什么…<span class="chat-cursor-blink">▌</span>
@@ -81,65 +75,6 @@ const STATUS_BG = 'background: var(--color-accent);';
     ></i>
     <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full chat-dock-dot" style="display:none; background: var(--color-accent);"></span>
   </a>
-)}
-
-{variant === 'fullscreen' && (
-  <div
-    transition:name="chat-layer"
-    class="chat-fullscreen fixed inset-0 z-50 bg-[var(--color-dark)] flex flex-col overflow-hidden"
-  >
-    <div class="relative flex-1 flex flex-col w-full">
-      <canvas data-chat-orb class="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true"></canvas>
-      <header class="relative z-10 shrink-0 px-6 sm:px-10 lg:px-16 pt-6 pb-4 flex items-center justify-between border-b" style="border-color: var(--chat-border);">
-        <div class="flex items-center gap-3">
-          <span class="font-heading text-lg font-medium" style="color: var(--chat-text);">moyuanhua 的 AI</span>
-          <span aria-hidden="true" class={STATUS_DOT} style={STATUS_BG}></span>
-        </div>
-        <div class="flex items-center gap-4">
-          <span class="text-sm hidden sm:inline" style="color: var(--chat-text-muted);">在案</span>
-          <button
-            type="button"
-            onclick="history.back()"
-            class="transition-colors cursor-pointer"
-            style="color: var(--chat-text-muted);"
-            aria-label="返回"
-          >
-            <i class="ph ph-x text-2xl" aria-hidden="true"></i>
-          </button>
-        </div>
-      </header>
-
-      <div class="relative z-10 flex-1 overflow-hidden">
-        <div data-chat-messages class="h-full overflow-y-auto px-6 sm:px-10 lg:px-16 py-6 space-y-4"></div>
-      </div>
-
-      <div class="relative z-10 shrink-0 border-t" style="border-color: var(--chat-border); background: var(--color-surface);">
-        <div class="px-6 sm:px-10 lg:px-16 py-5 flex gap-3 items-center">
-          <div class="relative flex-1">
-            <span data-chat-placeholder class="chat-placeholder absolute inset-0 flex items-center pointer-events-none text-sm sm:text-base font-body select-none" style="color: var(--chat-text-muted);">
-              随便问点什么…<span class="chat-cursor-blink">▌</span>
-            </span>
-            <input
-              data-chat-input
-              type="text"
-              placeholder="随便问点什么"
-              aria-label="输入要问 AI 的问题"
-              class="relative w-full bg-transparent border-none text-sm sm:text-base font-body focus:outline-none"
-              style="color: var(--chat-text);"
-            />
-          </div>
-          <button
-            data-chat-send
-            type="button"
-            class="shrink-0 text-sm font-medium px-5 py-2 transition-colors cursor-pointer rounded-[6px]"
-            style="background: var(--chat-accent); color: var(--chat-bg);"
-          >
-            发送
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 )}
 
 <script is:inline>
