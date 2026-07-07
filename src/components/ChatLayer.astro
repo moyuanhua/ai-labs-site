@@ -100,9 +100,9 @@ const STATUS_BG = 'background: var(--color-accent);';
       try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
       catch { return []; }
     }
-    function saveHistory(h: any[]) { localStorage.setItem(STORAGE_KEY, JSON.stringify(h)); }
+    function saveHistory(h) { localStorage.setItem(STORAGE_KEY, JSON.stringify(h)); }
 
-    function createBubble(role: string, text: string) {
+    function createBubble(role, text) {
       const div = document.createElement('div');
       const tokens = readTokens();
       if (role === 'user') {
@@ -131,7 +131,7 @@ const STATUS_BG = 'background: var(--color-accent);';
       return div;
     }
 
-    function createExampleBubble(role: string, text: string) {
+    function createExampleBubble(role, text) {
       const b = createBubble(role, text);
       b.classList.add('chat-example-bubble');
       b.setAttribute('data-example', 'true');
@@ -168,7 +168,7 @@ const STATUS_BG = 'background: var(--color-accent);';
         if (!text) return;
         messagesEl!.querySelectorAll('[data-example="true"]').forEach(el => el.remove());
         messagesEl!.appendChild(createBubble('user', text));
-        (window as any).__MOYUANHUA_orbState = 'typing';
+        window.__MOYUANHUA_orbState = 'typing';
         const hist = getHistory();
         hist.push({ role: 'user', text, ts: Date.now() });
         saveHistory(hist);
@@ -178,12 +178,12 @@ const STATUS_BG = 'background: var(--color-accent);';
 
         setTimeout(() => {
           const typing = createTypingIndicator();
-          (window as any).__MOYUANHUA_orbState = 'replying';
+          window.__MOYUANHUA_orbState = 'replying';
           messagesEl!.appendChild(typing);
           messagesEl!.scrollTop = messagesEl!.scrollHeight;
           setTimeout(() => {
             typing.remove();
-            (window as any).__MOYUANHUA_orbState = 'idle';
+            window.__MOYUANHUA_orbState = 'idle';
             messagesEl!.appendChild(createBubble('ai', FAKE_AI_REPLY));
             const h2 = getHistory();
             h2.push({ role: 'ai', text: FAKE_AI_REPLY, ts: Date.now() });
