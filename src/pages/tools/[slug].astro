@@ -3,44 +3,30 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
-  const posts = (await getCollection('posts')).filter(p => !p.data.draft);
+  const posts = (await getCollection('posts')).filter(p => !p.data.draft && p.data.type === 'tool');
   return posts.map(post => ({ params: { slug: post.id }, props: { post } }));
 }
 
 const { post } = Astro.props;
 const { Content } = await render(post);
 const BASE = import.meta.env.BASE_URL;
-
-const statusConfig = {
-  live:          { label: 'live',         style: 'background: var(--color-accent-soft); color: var(--color-accent); border-color: var(--color-accent);' },
-  beta:          { label: 'beta',         style: 'background: var(--color-surface-2);    color: var(--color-text);  border-color: var(--color-border);' },
-  'coming-soon': { label: 'coming soon', style: 'background: var(--color-bg);          color: var(--color-text-faint); border-color: var(--color-border);' },
-};
-const statusBadge = post.data.status ? statusConfig[post.data.status] : null;
 ---
 
 <BaseLayout title={`${post.data.title} · moyuanhua`} description={post.data.description}>
   <article class="scroll-reveal max-w-3xl mx-auto py-16 px-6 sm:px-10 lg:px-16 xl:px-24">
     <div class="relative bg-bg/85 backdrop-blur-md rounded-[6px] border border-border p-6 sm:p-10">
     <a
-      href={`${BASE}posts`}
+      href={`${BASE}tools`}
       class="inline-flex items-center gap-1 font-mono text-xs text-text-muted hover:text-[var(--color-accent)] transition-colors"
     >
       <i class="ph ph-arrow-left" aria-hidden="true"></i>
-      返回文章
+      返回工具箱
     </a>
 
     <header class="mt-8 mb-12">
-      <div class="flex items-start gap-4 flex-wrap">
-        <h1 class="font-heading text-3xl sm:text-4xl font-medium text-text leading-tight tracking-tight flex-1">
-          {post.data.title}
-        </h1>
-        {statusBadge && (
-          <span class="shrink-0 text-xs font-mono uppercase tracking-wider px-2.5 py-1 border rounded-[3px]" style={statusBadge.style}>
-            {statusBadge.label}
-          </span>
-        )}
-      </div>
+      <h1 class="font-heading text-3xl sm:text-4xl font-medium text-text leading-tight tracking-tight">
+        {post.data.title}
+      </h1>
       <time
         datetime={post.data.date.toISOString()}
         class="font-mono text-xs text-text-faint block mt-4 uppercase tracking-wider"
@@ -67,7 +53,7 @@ const statusBadge = post.data.status ? statusConfig[post.data.status] : null;
               class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-[6px] font-medium text-sm transition-colors cursor-pointer"
               style="background: var(--color-accent); color: var(--color-bg);"
             >
-              访问产品
+              访问工具
               <i class="ph-bold ph-arrow-up-right text-xs" aria-hidden="true"></i>
             </a>
           )}

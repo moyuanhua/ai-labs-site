@@ -19,13 +19,13 @@ interface Props {
   hideNav?: boolean;
   hideFooter?: boolean;
 }
-const { title, description = 'moyuanhua 的个人站点：写作、Demo、AI 实验', chatVariant = 'dock', bgIntensity = 'ambient', hideNav = false, hideFooter = false } = Astro.props;
+const { title, description = 'AI 落地工程师 · 把 AI 从 demo 干到生产', chatVariant = 'dock', bgIntensity = 'ambient', hideNav = false, hideFooter = false } = Astro.props;
 const BASE = import.meta.env.BASE_URL;
 const navLinks = [
-  { href: `${BASE}posts`,   label: '内容' },
-  { href: `${BASE}roadmap`, label: '路线图' },
+  { href: `${BASE}`,       label: '首页' },
+  { href: `${BASE}posts`,   label: '文章' },
+  { href: `${BASE}tools`,   label: '工具箱' },
   { href: `${BASE}about`,   label: '关于' },
-  { href: `${BASE}chat`,    label: '对话', soon: true },
 ];
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 const isActive = (href: string) => {

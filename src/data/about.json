@@ -1,6 +1,24 @@
 {
-  "now": [],
-  "projects": [],
-  "skills": [],
-  "contact": []
+  "now": [
+    "负责 DTC 电商的 LiveChat、AI 工具平台、建站提效、商品推荐等系统",
+    "用 AI 重构日常工作流，沉淀可复用的 Agent / 工具",
+    "建设这个个人站，记录 AI 落地实战"
+  ],
+  "projects": [
+    "DTC LiveChat 客服系统 — 全链路客服平台，支撑多渠道接入",
+    "AI 工具平台 2.0 — 内部 AI 能力中台，集成多模型调度与工作流编排",
+    "建站流程系统化 — 从需求到上线的标准化建站 SOP",
+    "商品推荐系统 — 基于用户行为的个性化推荐引擎"
+  ],
+  "skills": [
+    "前端：React / Vue / 小程序",
+    "后端：Node / Ruby / Go",
+    "服务器：AWS / 阿里云 / 腾讯云 · Nginx / Docker / K8s",
+    "CI/CD：GitHub Actions / Coding",
+    "AI：LangChain 开发 / LiveChat Agent"
+  ],
+  "contact": [
+    { "label": "GitHub", "url": "https://github.com/moyuanhua" },
+    { "label": "Email", "url": "mailto:hello@moyuanhua.dev" }
+  ]
 }

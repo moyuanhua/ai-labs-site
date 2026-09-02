@@ -1,10 +1,10 @@
 ---
 title: "ai-sites"
 date: 2024-06-01
-type: product
+type: post
 description: "HTML-first 内容发布平台——博客、Demo、产品展示，每篇内容都是一个独立 HTML 页面，AI 生成友好。"
-status: "live"
-github: "https://github.com/your-username/ai-sites"
+tags: [case]
+github: "https://github.com/moyuanhua/ai-labs-site"
 draft: false
 ---
 

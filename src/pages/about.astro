@@ -18,11 +18,15 @@ const isContactItem = (item: AboutItem): item is { label: string; url: string } 
 const allEmpty = sections.every(isEmpty);
 ---
 
-<BaseLayout title="关于 · moyuanhua" description="关于 moyuanhua">
+<BaseLayout title="关于 · moyuanhua" description="AI FDE — AI 落地工程师，把 AI 从 demo 干到生产">
 
   <article class="mx-auto max-w-[760px] px-6 sm:px-10 py-20">
     <div class="relative bg-bg/85 backdrop-blur-md rounded-[6px] border border-border p-6 sm:p-10">
-    <h1 class="font-heading text-4xl sm:text-5xl tracking-tight text-text font-medium mb-10">关于</h1>
+    <h1 class="font-heading text-4xl sm:text-5xl tracking-tight text-text font-medium mb-4">关于</h1>
+    <div class="prose-content mb-10">
+      <p class="text-text-muted leading-relaxed">AI FDE（AI Forward Deployed Engineer / AI 落地工程师）— 把 AI 从 demo 干到生产。</p>
+      <p class="text-text-muted leading-relaxed">SDE = Not Just a Software Development Engineer, but Someone Who Does Everything.</p>
+    </div>
 
     {allEmpty && (
       <div class="space-y-8 py-12 border-y" style="border-color: var(--color-border);">

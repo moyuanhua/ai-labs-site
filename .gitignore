@@ -6,6 +6,9 @@ opencode.json
 dist/
 .astro/
 
+# Feishu publish cache
+.cache/
+
 # Node
 node_modules/
 npm-debug.log*
