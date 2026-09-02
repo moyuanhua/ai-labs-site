@@ -1,20 +1,77 @@
 ---
 import HeroOrb from './HeroOrb.astro';
+interface Props {
+  variant: 'hero' | 'dock';
+}
+const { variant } = Astro.props;
 const BASE = import.meta.env.BASE_URL;
+
+const STATUS_DOT = 'inline-block w-2 h-2 rounded-full';
+const STATUS_BG = 'background: var(--color-accent);';
 ---
 
-<a
-  href={`${BASE}chat`}
-  data-chat-dock
-  aria-label="和 AI 聊"
-  class="chat-dock fixed bottom-6 right-6 z-30 w-[48px] h-[48px] flex items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-110 dock-orb-halo"
-  onmouseenter="window.__MOYUANHUA_orbState='typing'"
-  onmouseleave="window.__MOYUANHUA_orbState='idle'"
-  onfocus="window.__MOYUANHUA_orbState='typing'"
-  onblur="window.__MOYUANHUA_orbState='idle'"
->
-  <HeroOrb size={48} />
-</a>
+{variant === 'hero' && (
+  <div
+    transition:name="chat-layer"
+    class="chat-hero relative flex flex-col h-full bg-[var(--color-bg)] overflow-hidden"
+  >
+    <div class="relative z-10 flex-1 flex flex-col justify-center w-full">
+      <div class="mx-auto max-w-[1400px] w-full px-6 sm:px-10 lg:px-16 py-8">
+        <div class="mb-6">
+          <p class="font-heading text-xl sm:text-2xl font-medium mb-2" style="color: var(--chat-text);">
+            你好，我是 moyuanhua 的 AI
+          </p>
+          <p class="font-body text-sm sm:text-base leading-relaxed max-w-lg" style="color: var(--chat-text-muted);">
+            问我的工作、demo、写作，或路线图。我读过这个站上的全部内容。
+          </p>
+        </div>
+
+        <div data-chat-messages class="flex-1 min-h-[160px] max-h-[40vh] overflow-y-auto space-y-3 pr-2"></div>
+      </div>
+    </div>
+
+    <div class="relative z-10 shrink-0 bg-[var(--color-surface)] border-t" style="border-color: var(--chat-border);">
+      <div class="mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 py-5 flex gap-3 items-center">
+        <div class="relative flex-1">
+          <span data-chat-placeholder class="chat-placeholder absolute inset-0 flex items-center pointer-events-none text-sm sm:text-base font-body select-none" style="color: var(--chat-text-muted);">
+            随便问点什么…<span class="chat-cursor-blink">▌</span>
+          </span>
+          <input
+            data-chat-input
+            type="text"
+            placeholder="随便问点什么"
+            aria-label="输入要问 AI 的问题"
+            class="relative w-full bg-transparent border-none text-sm sm:text-base font-body focus:outline-none"
+            style="color: var(--chat-text);"
+          />
+        </div>
+        <button
+          data-chat-send
+          type="button"
+          class="shrink-0 text-sm font-medium px-5 py-2 transition-colors cursor-pointer rounded-[6px]"
+          style="background: var(--chat-accent); color: var(--chat-bg);"
+        >
+          发送
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{variant === 'dock' && (
+  <a
+    href={`${BASE}chat`}
+    data-chat-dock
+    aria-label="和 AI 聊"
+    class="chat-dock fixed bottom-6 right-6 z-30 w-[48px] h-[48px] flex items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-110 dock-orb-halo"
+    onmouseenter="window.__MOYUANHUA_orbState='typing'"
+    onmouseleave="window.__MOYUANHUA_orbState='idle'"
+    onfocus="window.__MOYUANHUA_orbState='typing'"
+    onblur="window.__MOYUANHUA_orbState='idle'"
+  >
+    <HeroOrb size={48} />
+  </a>
+)}
 
 <style is:global>
   /* CSS-only breathing halo for the dock orb. The orb itself is
@@ -33,3 +90,139 @@ const BASE = import.meta.env.BASE_URL;
     .dock-orb-halo { animation: none; box-shadow: 0 0 0 3px var(--color-accent-soft); }
   }
 </style>
+
+<script is:inline>
+  (() => {
+    const STORAGE_KEY = 'moyuanhua-chat-history';
+    const FAKE_AI_REPLY = "我还在训练中。等我能上线，就能回答关于博客、demo 和产品的问题。先逛逛其他页面吧。";
+    const EXAMPLE_CONVERSATION = [
+      { role: 'user', text: '你可以做什么？' },
+      { role: 'ai', text: '我能回答关于 moyuanhua 的博客、demo、产品。比如：\n• 最近写了什么？\n• 有哪些 demo？\n• 在做哪些产品？' },
+    ];
+
+    function readTokens() {
+      const probe = getComputedStyle(document.documentElement);
+      return {
+        accent:  probe.getPropertyValue('--chat-accent').trim(),
+        bg:      probe.getPropertyValue('--chat-bg').trim(),
+        surface: probe.getPropertyValue('--color-surface-2').trim(),
+        border:  probe.getPropertyValue('--chat-border').trim(),
+        text:    probe.getPropertyValue('--chat-text').trim(),
+        muted:   probe.getPropertyValue('--chat-text-muted').trim(),
+      };
+    }
+
+    function getHistory() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+      catch { return []; }
+    }
+    function saveHistory(h) { localStorage.setItem(STORAGE_KEY, JSON.stringify(h)); }
+
+    function createBubble(role, text) {
+      const div = document.createElement('div');
+      const tokens = readTokens();
+      if (role === 'user') {
+        div.className = 'rounded-[6px] rounded-tr-sm p-3 text-sm ml-auto max-w-[80%] chat-bubble-enter font-body';
+        div.style.background = tokens.accent;
+        div.style.color = tokens.bg;
+      } else {
+        div.className = 'border rounded-[6px] rounded-tl-sm p-3 text-sm max-w-[85%] chat-bubble-enter font-body';
+        div.style.background = tokens.surface;
+        div.style.borderColor = tokens.border;
+        div.style.color = tokens.text;
+        div.style.opacity = '0.92';
+      }
+      div.textContent = text;
+      if (role === 'ai' && text.includes('\n')) div.style.whiteSpace = 'pre-line';
+      return div;
+    }
+
+    function createTypingIndicator() {
+      const div = document.createElement('div');
+      div.className = 'border rounded-[6px] rounded-tl-sm p-3 inline-flex gap-1';
+      const tokens = readTokens();
+      div.style.background = tokens.surface;
+      div.style.borderColor = tokens.border;
+      div.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+      return div;
+    }
+
+    function createExampleBubble(role, text) {
+      const b = createBubble(role, text);
+      b.classList.add('chat-example-bubble');
+      b.setAttribute('data-example', 'true');
+      return b;
+    }
+
+    function initChat() {
+      const messagesEl = document.querySelector('[data-chat-messages]');
+      const inputEl = document.querySelector('[data-chat-input]') as HTMLInputElement | null;
+      const sendBtn = document.querySelector('[data-chat-send]');
+      const placeholderEl = document.querySelector('[data-chat-placeholder]');
+      if (!messagesEl || !inputEl || !sendBtn) return;
+
+      messagesEl.innerHTML = '';
+      const history = getHistory();
+      if (history.length === 0) {
+        EXAMPLE_CONVERSATION.forEach(m => messagesEl.appendChild(createExampleBubble(m.role, m.text)));
+      } else {
+        history.forEach(m => messagesEl.appendChild(createBubble(m.role, m.text)));
+      }
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+
+      function updatePlaceholder() {
+        if (!placeholderEl) return;
+        placeholderEl.style.display = (inputEl!.value !== '' || document.activeElement === inputEl) ? 'none' : '';
+      }
+      inputEl.addEventListener('focus', updatePlaceholder);
+      inputEl.addEventListener('blur', updatePlaceholder);
+      inputEl.addEventListener('input', updatePlaceholder);
+      updatePlaceholder();
+
+      function send() {
+        const text = inputEl!.value.trim();
+        if (!text) return;
+        messagesEl!.querySelectorAll('[data-example="true"]').forEach(el => el.remove());
+        messagesEl!.appendChild(createBubble('user', text));
+        window.__MOYUANHUA_orbState = 'typing';
+        const hist = getHistory();
+        hist.push({ role: 'user', text, ts: Date.now() });
+        saveHistory(hist);
+        inputEl!.value = '';
+        updatePlaceholder();
+        messagesEl!.scrollTop = messagesEl!.scrollHeight;
+
+        setTimeout(() => {
+          const typing = createTypingIndicator();
+          window.__MOYUANHUA_orbState = 'replying';
+          messagesEl!.appendChild(typing);
+          messagesEl!.scrollTop = messagesEl!.scrollHeight;
+          setTimeout(() => {
+            typing.remove();
+            window.__MOYUANHUA_orbState = 'idle';
+            messagesEl!.appendChild(createBubble('ai', FAKE_AI_REPLY));
+            const h2 = getHistory();
+            h2.push({ role: 'ai', text: FAKE_AI_REPLY, ts: Date.now() });
+            saveHistory(h2);
+            messagesEl!.scrollTop = messagesEl!.scrollHeight;
+          }, 1500);
+        }, 300);
+      }
+
+      sendBtn.addEventListener('click', send);
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+      });
+    }
+
+    function initDockDot() {
+      const dot = document.querySelector('.chat-dock-dot') as HTMLElement | null;
+      if (!dot) return;
+      dot.style.display = getHistory().length > 0 ? 'block' : 'none';
+    }
+
+    initChat();
+    initDockDot();
+    document.addEventListener('astro:page-load', () => { initChat(); initDockDot(); });
+  })();
+</script>

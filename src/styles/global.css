@@ -329,3 +329,10 @@ html.lenis, html.lenis body { height: auto; }
           mask-image: radial-gradient(circle at center, #000 64%, transparent 65%);
 }
 
+/* ─── Dynamic background utilities (fix Tailwind v4 static compilation) ── */
+/* Tailwind compiles `bg-bg` to static #f4f1ea, breaking dark mode. */
+/* These classes use var() so the media query override takes effect. */
+.bg-token { background-color: var(--color-bg); }
+.bg-token\/85 { background-color: color-mix(in oklab, var(--color-bg) 85%, transparent); }
+.bg-token\/95 { background-color: color-mix(in oklab, var(--color-bg) 95%, transparent); }
+

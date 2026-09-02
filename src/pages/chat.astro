@@ -3,321 +3,376 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 const BASE = import.meta.env.BASE_URL;
 
-// Pull real site content. Chat is a query interface, not a demo:
-// it surfaces the actual posts, demos, cases, and contact routes so
-// the user can jump straight to the right page.
+// LangChain chat UI — model: {id, role, content, toolCalls[], sources[], status, createdAt}
+// Streaming: token-by-token, in-place mutation of the assistant bubble.
+// Citations: union of "sources" event (create-llama) + tool-call cards (chat-langchain).
+// Today everything is mocked at /api/chat, but the message protocol and event
+// stream match what a real LangChain backend will emit, so swapping the
+// endpoint is the only change needed later.
 
 const posts = (await getCollection('posts'))
   .filter(p => !p.data.draft)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-const byType = (t: string) =>
-  posts.filter(p => p.data.type === t).map(p => ({
-    title: p.data.title,
-    slug: p.id,
-    type: p.data.type,
-    description: p.data.description,
-  }));
-
-const latest = posts.slice(0, 3).map(p => ({ title: p.data.title, slug: p.id, description: p.data.description }));
-const demos = byType('demo').slice(0, 3);
-const cases = posts.filter(p => p.data.tags?.includes('case')).slice(0, 3)
-  .map(p => ({ title: p.data.title, slug: p.id, description: p.data.description }));
-
-// command registry — slash tokens surface a fixed list of links
-// without scoring. There is no "best match" fuzzy magic: the user
-// types a slash, picks a command, gets a deterministic list.
-const commands = [
-  { token: '/latest', label: '最近 3 篇文章', items: latest, kind: 'post' as const },
-  { token: '/demos',  label: '可玩的 demo',     items: demos,  kind: 'demo' as const },
-  { token: '/cases',  label: '落地案例',         items: cases,  kind: 'case' as const },
-  { token: '/about',  label: '关于 & 联系方式',   items: [
-      { title: '关于 moyuanhua', slug: 'about', description: 'AI 落地工程师 · 工作流 · 工具箱' },
-      { title: '工具箱',         slug: 'tools', description: '可复用的脚本、模板、Agent 集合' },
-    ], kind: 'meta' as const },
-];
-
-// free-text query scoring: rank posts by simple keyword overlap.
-// Exposed to the client via <script type="application/json">.
-type Item = { title: string; slug: string; description: string };
-function scoreItems(items: Item[], q: string) {
-  const tokens = q.toLowerCase().split(/[\s,，、]+/).filter(t => t.length > 0);
-  if (tokens.length === 0) return items.map(it => ({ ...it, score: 0 }));
-  return items
-    .map(it => {
-      const hay = `${it.title} ${it.description}`.toLowerCase();
-      let s = 0;
-      for (const t of tokens) {
-        if (!t) continue;
-        if (hay.includes(t)) s += 1;
-        if (it.title.toLowerCase().includes(t)) s += 1; // title match weighs double
-      }
-      return { ...it, score: s };
-    })
-    .filter(x => x.score > 0)
-    .sort((a, b) => b.score - a.score);
-}
-
-const allIndexable: Item[] = posts.map(p => ({
+// indexable items for the mock retriever: every post + about + tools.
+const indexable = posts.map(p => ({
+  id: p.id,
   title: p.data.title,
-  slug: p.id,
   description: p.data.description,
+  type: p.data.type,
+  href: `${BASE}posts/${p.id}`,
 }));
+indexable.push({ id: 'about', title: '关于 moyuanhua', description: 'AI 落地工程师 · 工作流 · 工具箱', type: 'page', href: `${BASE}about` });
+indexable.push({ id: 'tools', title: '工具箱', description: '可复用的脚本、模板、Agent 集合', type: 'page', href: `${BASE}tools` });
 
-const clientData = { commands, allIndexable };
+// Serialize the indexable list as JSON for the client-side mock retriever.
+const indexableJson = JSON.stringify(indexable);
 ---
 
-<BaseLayout title="对话 · moyuanhua" description="一个 query interface — 搜这个站的内容、跑命令、跳到目的地" bgIntensity="none" hideNav hideFooter>
-  <div class="chat-shell relative min-h-screen w-full flex flex-col bg-bg text-text font-mono">
-    <!-- status bar: token / state / cmd hint. Always visible, no scroll. -->
-    <header class="shrink-0 h-9 px-4 sm:px-6 flex items-center justify-between border-b border-border bg-bg text-[0.7rem]">
-      <div class="flex items-center gap-3 min-w-0">
-        <a href={BASE} class="inline-flex items-center gap-1.5 text-text-muted hover:text-text transition-colors">
-          <span aria-hidden="true">←</span>
-          <span class="hidden sm:inline">moyuanhua</span>
-        </a>
+<BaseLayout title="对话 · moyuanhua" description="和 moyuanhua 的 AI 聊这个站上的内容" chatVariant="none" bgIntensity="none" hideNav hideFooter>
+  <div class="chat-shell relative min-h-screen w-full flex flex-col bg-token text-text">
+    <!-- minimal header -->
+    <header class="shrink-0 h-12 px-4 sm:px-6 flex items-center justify-between border-b border-border bg-token/85 backdrop-blur-md">
+      <a href={BASE} class="inline-flex items-center gap-2 text-sm font-heading font-semibold tracking-tight hover:text-accent transition-colors">
+        <span aria-hidden="true">←</span>
+        <span>moyuanhua</span>
+      </a>
+      <div class="flex items-center gap-2 text-[0.65rem] font-mono uppercase tracking-wider text-text-muted">
+        <span data-status-dot class="w-1.5 h-1.5 rounded-[2px]" style="background: var(--color-text-faint);"></span>
+        <span data-status-label>idle</span>
         <span class="text-text-faint">·</span>
-        <span class="text-text-muted hidden sm:inline">query interface</span>
-      </div>
-      <div class="flex items-center gap-3 sm:gap-4 text-text-muted">
-        <span class="hidden sm:inline-flex items-center gap-1.5">
-          <kbd class="font-mono text-[0.65rem] px-1.5 py-0.5 rounded-[2px] border border-border text-text-faint">⌘K</kbd>
-          <span>focus</span>
-        </span>
-        <span data-status-pill class="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border border-border text-text-muted">
-          <span data-status-dot class="w-1.5 h-1.5 rounded-[2px]" style="background: var(--color-text-faint);"></span>
-          <span data-status-text>idle</span>
-        </span>
-        <span class="text-text-faint">
-          <span data-token-count>0</span><span class="hidden sm:inline"> ctx</span>
-        </span>
+        <span>post-{posts.length}</span>
       </div>
     </header>
 
-    <!-- terminal stage -->
-    <main class="flex-1 min-h-0 overflow-y-auto" data-stage>
-      <div class="mx-auto max-w-3xl px-4 sm:px-6 py-8 sm:py-14">
-        <!-- welcome log: explains the surface, in CLI voice -->
-        <section aria-label="welcome" class="text-[0.8rem] sm:text-sm leading-relaxed text-text-muted space-y-1 mb-8">
-          <p><span class="text-text-faint">#</span> query interface — v0.1</p>
-          <p><span class="text-text-faint">#</span> 输入 <code class="text-text">/</code> 命令查看站点切片，或直接搜站内 {allIndexable.length} 条内容</p>
-          <p><span class="text-text-faint">#</span> 暂无 LLM 接入。提交 = 站内检索；返回的是真链接，不是回答</p>
-          <p class="text-text-faint"># ↑↓ 历史  ·  ⌫ 清空  ·  ⌘K 聚焦  ·  Esc 退出</p>
-        </section>
-
-        <!-- command palette: hidden until / is typed -->
-        <div data-palette class="hidden mb-4 border border-border rounded-[6px] bg-surface overflow-hidden">
-          <div class="px-3 py-1.5 text-[0.7rem] text-text-faint border-b border-border bg-bg/60">commands</div>
-          <ul data-palette-list class="divide-y divide-border text-[0.8rem]">
-            {commands.map(c => (
-              <li>
-                <button
-                  type="button"
-                  data-cmd={c.token}
-                  class="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-bg/40 transition-colors"
-                >
-                  <span class="text-text-faint">›</span>
-                  <span class="text-text">{c.token}</span>
-                  <span class="text-text-faint">—</span>
-                  <span class="text-text-muted">{c.label}</span>
-                  <span class="ml-auto text-text-faint">{c.items.length}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <!-- prompt: $ chat --topic=... (cursor lives at the end) -->
-        <form data-prompt-form class="flex items-start gap-2 text-base sm:text-lg leading-relaxed" autocomplete="off">
-          <label for="q" class="shrink-0 select-none text-text-muted">$</label>
-          <span class="shrink-0 text-text-muted">chat</span>
-          <span class="shrink-0 text-text-faint">--topic=</span>
-          <div class="relative flex-1 min-w-0">
-            <span data-echo class="whitespace-pre-wrap break-words text-text" aria-hidden="true"></span>
-            <span data-caret class="inline-block w-[0.55ch] h-[1em] align-text-bottom ml-px" style="background: var(--color-accent); animation: caret-blink 1s steps(1) infinite;"></span>
-            <input
-              id="q"
-              data-q
-              type="text"
-              spellcheck="false"
-              autocapitalize="off"
-              autocorrect="off"
-              placeholder="最近写了什么  /agent  怎么联系 /"
-              aria-label="query"
-              class="absolute inset-0 w-full h-full opacity-0 cursor-text text-transparent caret-transparent focus:outline-none"
-            />
-          </div>
-        </form>
-
-        <!-- inline hint row: when /palette is open or query is empty -->
-        <p data-hint class="mt-2 text-[0.7rem] text-text-faint">↵ 执行  ·  /  打开命令  ·  ↑↓ 历史</p>
-
-        <!-- output log: terminal-style, one line per row, no bubbles -->
-        <div data-log class="mt-8 space-y-1 text-[0.8rem] sm:text-sm"></div>
-      </div>
+    <!-- message stream: empty on first load. Populated by user input. -->
+    <main data-thread class="flex-1 min-h-0 overflow-y-auto">
+      <div data-list class="mx-auto max-w-3xl px-4 sm:px-6 py-8 sm:py-12 space-y-6"></div>
     </main>
 
-    <!-- footer: file path of the page, monospace. Stays put. -->
-    <footer class="shrink-0 h-7 px-4 sm:px-6 flex items-center justify-between border-t border-border text-[0.65rem] text-text-faint">
-      <span>src/pages/chat.astro</span>
-      <span data-history-stamp>history: 0</span>
+    <!-- input — bottom of viewport, like every chat UI -->
+    <footer class="shrink-0 border-t border-border bg-token/95 backdrop-blur-md">
+      <form data-prompt-form class="mx-auto max-w-3xl px-4 sm:px-6 py-4 flex gap-2 items-end" autocomplete="off">
+        <div class="relative flex-1">
+          <textarea
+            data-q
+            rows="1"
+            placeholder="问点什么 —— ↵ 发送，⇧↵ 换行"
+            spellcheck="false"
+            aria-label="输入要问 AI 的问题"
+            class="w-full bg-surface border border-border rounded-[6px] px-3.5 py-2.5 pr-10 text-sm sm:text-base font-body resize-none focus:outline-none focus:border-accent transition-colors max-h-40 overflow-y-auto"
+          ></textarea>
+        </div>
+        <button
+          data-send
+          type="submit"
+          aria-label="发送"
+          class="shrink-0 w-10 h-10 inline-flex items-center justify-center rounded-[6px] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          style="background: var(--color-accent); color: var(--color-bg);"
+        >
+          <i class="ph-bold ph-arrow-up text-base" aria-hidden="true"></i>
+        </button>
+      </form>
     </footer>
   </div>
 
-  <script id="chat-data" type="application/json" set:html={JSON.stringify(clientData)}></script>
+  <script id="chat-indexable" type="application/json" set:html={indexableJson}></script>
 
   <style is:global>
-    @keyframes caret-blink {
-      0%, 50%   { opacity: 1; }
-      50.01%, 100% { opacity: 0; }
+    /* message bubble entrance — used by both user and assistant */
+    @keyframes chat-bubble-enter {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    [data-stage] ::selection { background: var(--color-accent); color: var(--color-bg); }
+    [data-thread] [data-msg] { animation: chat-bubble-enter 180ms ease-out both; }
+
+    /* typing indicator */
+    @keyframes chat-typing-blink {
+      0%, 60%, 100% { opacity: 0.25; }
+      30%           { opacity: 1; }
+    }
+    .chat-typing-dot { animation: chat-typing-blink 1.2s ease-in-out infinite; }
+    .chat-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .chat-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    /* citation footnote row */
+    .chat-cite-chip {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-family: var(--font-mono); font-size: 0.7rem;
+      padding: 0.15rem 0.5rem; border-radius: 2px;
+      border: 1px solid var(--color-border);
+      color: var(--color-text-muted);
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .chat-cite-chip:hover { color: var(--color-accent); border-color: var(--color-accent); }
+
+    /* tool call card (used in mock) */
+    .chat-tool-card {
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: var(--color-surface);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      overflow: hidden;
+    }
+    .chat-tool-card > header {
+      padding: 0.4rem 0.7rem;
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-text-muted);
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .chat-tool-card > pre {
+      padding: 0.5rem 0.7rem;
+      margin: 0;
+      color: var(--color-text);
+      white-space: pre-wrap; word-break: break-all;
+    }
+
+    /* streaming cursor */
+    .chat-stream-cursor {
+      display: inline-block; width: 0.5ch; height: 1em;
+      vertical-align: text-bottom; margin-left: 1px;
+      background: var(--color-accent);
+      animation: caret-blink 1s steps(1) infinite;
+    }
+    @keyframes caret-blink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+
+    /* selection in the chat */
+    [data-thread] ::selection { background: var(--color-accent); color: var(--color-bg); }
   </style>
 
   <script is:inline>
     (() => {
-      const STORAGE_KEY = 'moyuanhua-chat-history-v3';
-      const dataEl = document.getElementById('chat-data');
-      if (!dataEl) return;
-      let data = { commands: [], allIndexable: [] };
-      try { data = JSON.parse(dataEl.textContent || '{}'); } catch { data = { commands: [], allIndexable: [] }; }
-      const commands = data.commands || [];
-      const allIndexable = data.allIndexable || [];
+      const STORAGE_KEY = 'moyuanhua-chat-thread-v4';
+      const ENDPOINT = '/api/chat';   // ← future LangChain backend lives here
+      const dataEl = document.getElementById('chat-indexable');
+      let indexable = [];
+      try { indexable = JSON.parse(dataEl?.textContent || '[]'); } catch { indexable = []; }
 
       const form = document.querySelector('[data-prompt-form]');
       const input = document.querySelector('[data-q]');
-      const echo = document.querySelector('[data-echo]');
-      const log = document.querySelector('[data-log]');
-      const palette = document.querySelector('[data-palette]');
-      const paletteList = document.querySelector('[data-palette-list]');
-      const hint = document.querySelector('[data-hint]');
-      const statusText = document.querySelector('[data-status-text]');
+      const sendBtn = document.querySelector('[data-send]');
+      const list = document.querySelector('[data-list]');
       const statusDot = document.querySelector('[data-status-dot]');
-      const tokenCount = document.querySelector('[data-token-count]');
-      const historyStamp = document.querySelector('[data-history-stamp]');
-      if (!form || !input || !echo || !log) return;
+      const statusLabel = document.querySelector('[data-status-label]');
+      const threadEl = document.querySelector('[data-thread]');
+      if (!form || !input || !list || !statusDot || !statusLabel) return;
 
-      const state = { value: '', status: 'idle' };
+      // Session = threadId, persisted in localStorage.
+      function getThreadId() {
+        let id = null;
+        try { id = localStorage.getItem(STORAGE_KEY + ':thread'); } catch {}
+        if (!id) {
+          id = 'thr_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+          try { localStorage.setItem(STORAGE_KEY + ':thread', id); } catch {}
+        }
+        return id;
+      }
+      const threadId = getThreadId();
+
+      // thread = { id, messages: [{id, role, content, toolCalls, sources, status, createdAt}] }
+      function loadThread() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || { id: threadId, messages: [] }; }
+        catch { return { id: threadId, messages: [] }; }
+      }
+      function saveThread(t) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(t)); } catch {} }
+      const thread = loadThread();
+      if (!thread.id) thread.id = threadId;
 
       function setStatus(s) {
-        state.status = s;
         const map = {
-          idle:      { label: 'idle',      dot: 'var(--color-text-faint)' },
-          typing:    { label: 'typing',    dot: 'var(--color-accent)' },
-          searching: { label: 'searching', dot: 'var(--color-accent)' },
-          matched:   { label: 'matched',   dot: 'var(--color-accent)' },
-          done:      { label: 'done',      dot: 'var(--color-text-faint)' },
+          idle:     { label: 'idle',     color: 'var(--color-text-faint)' },
+          sending:  { label: 'sending',  color: 'var(--color-accent)' },
+          thinking: { label: 'thinking', color: 'var(--color-accent)' },
+          streaming:{ label: 'streaming',color: 'var(--color-accent)' },
+          done:     { label: 'idle',     color: 'var(--color-text-faint)' },
         };
         const m = map[s] || map.idle;
-        if (statusText) statusText.textContent = m.label;
-        if (statusDot)  statusDot.style.background = m.dot;
+        statusLabel.textContent = m.label;
+        statusDot.style.background = m.color;
       }
 
-      function getHistory() {
-        try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-        catch { return []; }
-      }
-      function saveHistory(h) { localStorage.setItem(STORAGE_KEY, JSON.stringify(h)); }
+      function newId() { return 'm_' + Math.random().toString(36).slice(2, 10); }
 
-      function ts() {
-        const d = new Date();
-        return d.toTimeString().slice(0, 8);
-      }
-
-      function slugToHref(slug) {
-        const BASE = (document.querySelector('a[href^="/"]')?.getAttribute('href') || '/');
-        if (slug === 'about') return BASE + 'about';
-        if (slug === 'tools') return BASE + 'tools';
-        return BASE + 'posts/' + slug;
-      }
-
-      function appendLog(rows) {
-        const frag = document.createDocumentFragment();
-        for (const r of rows) {
-          const el = document.createElement('div');
-          el.className = r.cls || 'text-text-muted';
-          if (r.prompt) {
-            const p = document.createElement('span');
-            p.className = 'text-text-muted select-none';
-            p.textContent = '$ ';
-            el.appendChild(p);
-          }
-          if (r.html) {
-            el.innerHTML = r.html;
-          } else {
-            el.textContent = r.text || '';
-          }
-          frag.appendChild(el);
+      function el(tag, attrs = {}, children = []) {
+        const e = document.createElement(tag);
+        for (const [k, v] of Object.entries(attrs)) {
+          if (k === 'className') e.className = v;
+          else if (k === 'html') e.innerHTML = v;
+          else if (k === 'text') e.textContent = v;
+          else if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.slice(2), v);
+          else e.setAttribute(k, v);
         }
-        log.appendChild(frag);
-        const stage = document.querySelector('[data-stage]');
-        if (stage) stage.scrollTop = stage.scrollHeight;
-      }
-
-      function escHtml(s) {
-        return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
-      }
-
-      function findCommand(q) {
-        const trimmed = q.trim();
-        for (const c of commands) {
-          if (trimmed === c.token || trimmed.startsWith(c.token + ' ') || trimmed.startsWith(c.token + '\t')) return c;
+        for (const c of children) {
+          if (c == null) continue;
+          e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
         }
-        return null;
+        return e;
       }
 
-      function renderHistoryLine(h) {
-        const safe = escHtml(h.q);
-        const time = escHtml(h.time || '--:--:--');
-        const matched = h.matched ? escHtml(h.matched) : '—';
-        return `<span class="text-text-faint">${time}</span> ` +
-               `<span class="text-text-muted select-none">|</span> ` +
-               `<span class="text-text">${safe}</span> ` +
-               `<span class="text-text-faint">→</span> ` +
-               `<span class="text-text-muted">${matched}</span>`;
+      function scrollToBottom() {
+        if (!threadEl) return;
+        requestAnimationFrame(() => { threadEl.scrollTop = threadEl.scrollHeight; });
       }
 
-      function execute(q) {
-        if (!q || !q.trim()) return;
-        const time = ts();
+      // Render one message into the list. Returns the root element so the
+      // streaming handler can mutate it in place.
+      function renderMessage(m) {
+        const root = el('article', {
+          'data-msg': m.id,
+          'data-role': m.role,
+          'data-status': m.status || 'done',
+        });
+        if (m.role === 'user') {
+          const bubble = el('div', {
+            className: 'rounded-[6px] rounded-tr-sm px-4 py-2.5 text-sm sm:text-base font-body ml-auto max-w-[85%]',
+            style: 'background: var(--color-accent); color: var(--color-bg);',
+          }, [m.content]);
+          root.appendChild(bubble);
+        } else {
+          // assistant — role label
+          const label = el('div', { className: 'flex items-center gap-2 mb-1.5' }, [
+            el('span', { className: 'inline-block w-1.5 h-1.5 rounded-[2px]', style: 'background: var(--color-accent);' }),
+            el('span', { className: 'font-mono text-[0.65rem] uppercase tracking-wider text-text-muted' }, ['moyuanhua · ai']),
+          ]);
+          root.appendChild(label);
 
-        setStatus('searching');
-        appendLog([{ prompt: true, text: q }]);
+          // thinking block (only while status === 'thinking')
+          if (m.status === 'thinking') {
+            const typing = el('div', { className: 'border rounded-[6px] rounded-tl-sm p-3 inline-flex gap-1 mb-2', style: 'border-color: var(--color-border);' });
+            for (let i = 0; i < 3; i++) typing.appendChild(el('span', { className: 'chat-typing-dot inline-block w-1.5 h-1.5 rounded-[2px]', style: 'background: var(--color-text-muted);' }));
+            root.appendChild(typing);
+          }
 
-        // 1) slash command
-        const cmd = findCommand(q);
-        if (cmd) {
-          setTimeout(() => {
-            const rows = [];
-            rows.push({ cls: 'text-text-faint', text: `# matched: command ${cmd.token} (${cmd.items.length} items)` });
-            for (const it of cmd.items) {
-              const href = slugToHref(it.slug);
-              const title = escHtml(it.title);
-              rows.push({
-                cls: 'text-text',
-                html: `<span class="text-[var(--color-accent)] select-none" aria-hidden="true">→</span> ` +
-                      `<a class="hover:text-[var(--color-accent)] underline decoration-[var(--color-accent)] decoration-1 underline-offset-4 transition-colors" href="${href}">${title}</a>`,
-              });
+          // tool calls (cards, one per call) — for the mock this is a "search" call
+          if (m.toolCalls && m.toolCalls.length) {
+            for (const tc of m.toolCalls) {
+              const card = el('div', { className: 'chat-tool-card mb-2' });
+              const head = el('header', {}, [
+                el('span', { className: 'text-text' }, [tc.name || 'tool']),
+                el('span', { className: 'text-text-faint' }, [tc.id || '']),
+              ]);
+              card.appendChild(head);
+              const body = el('pre', {}, [JSON.stringify(tc.args, null, 2)]);
+              card.appendChild(body);
+              if (tc.output != null) {
+                const out = el('pre', { style: 'border-top: 1px solid var(--color-border); background: var(--color-bg);' },
+                  [typeof tc.output === 'string' ? tc.output : JSON.stringify(tc.output, null, 2)]);
+                card.appendChild(out);
+              }
+              root.appendChild(card);
             }
-            appendLog(rows);
-            setStatus('matched');
-            pushHistory(q, `command:${cmd.token}`);
-          }, 220);
-          return;
-        }
+          }
 
-        // 2) free-text: rank indexable items by keyword overlap
-        const tokens = q.toLowerCase().split(/[\s,，、]+/).filter(t => t.length > 0);
-        if (tokens.length === 0) {
-          setStatus('idle');
-          return;
+          // main content — markdown-ish render (very minimal: paragraphs + links)
+          const body = el('div', { className: 'chat-content text-text font-body text-sm sm:text-base leading-relaxed' });
+          if (m.content) {
+            body.innerHTML = renderMarkdown(m.content);
+          } else if (m.status === 'streaming') {
+            body.appendChild(el('span', { className: 'chat-stream-cursor' }));
+          }
+          root.appendChild(body);
+
+          // sources row — cited chips
+          if (m.sources && m.sources.length) {
+            const row = el('div', { className: 'mt-3 pt-3 border-t flex flex-wrap gap-2', style: 'border-color: var(--color-border);' });
+            for (let i = 0; i < m.sources.length; i++) {
+              const s = m.sources[i];
+              const chip = el('a', {
+                href: s.href,
+                className: 'chat-cite-chip',
+                'data-cite-n': String(i + 1),
+              }, [
+                el('span', { className: 'text-text-faint' }, [`[${i + 1}]`]),
+                el('span', {}, [s.title]),
+              ]);
+              row.appendChild(chip);
+            }
+            root.appendChild(row);
+          }
         }
-        const scored = allIndexable
+        list.appendChild(root);
+        scrollToBottom();
+        return root;
+      }
+
+      // Minimal markdown: paragraphs, [n] citation refs, [text](url) links.
+      function renderMarkdown(text) {
+        const lines = text.split('\n');
+        const out = [];
+        let para = [];
+        function flushPara() {
+          if (para.length) {
+            const p = document.createElement('p');
+            p.className = 'mb-2 last:mb-0';
+            p.innerHTML = inlineMd(para.join(' '));
+            out.push(p.outerHTML);
+            para = [];
+          }
+        }
+        for (const line of lines) {
+          if (line.trim() === '') { flushPara(); continue; }
+          if (/^\s*[-*]\s+/.test(line)) {
+            flushPara();
+            out.push('<li class="ml-4 list-disc">' + inlineMd(line.replace(/^\s*[-*]\s+/, '')) + '</li>');
+          } else {
+            para.push(line);
+          }
+        }
+        flushPara();
+        return out.join('');
+      }
+      function inlineMd(s) {
+        return s
+          .replace(/\[(\d+)\]/g, '<sup class="font-mono text-[0.7em] text-accent">[$1]</sup>')
+          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a class="hover:text-accent underline decoration-text-faint underline-offset-2 transition-colors" href="$2">$1</a>')
+          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      }
+
+      function appendUserMessage(text) {
+        const m = { id: newId(), role: 'user', content: text, status: 'done', createdAt: Date.now() };
+        thread.messages.push(m);
+        saveThread(thread);
+        renderMessage(m);
+        return m;
+      }
+      function createAssistantMessage() {
+        const m = {
+          id: newId(),
+          role: 'assistant',
+          content: '',
+          toolCalls: [],
+          sources: [],
+          status: 'thinking',
+          createdAt: Date.now(),
+        };
+        thread.messages.push(m);
+        saveThread(thread);
+        return m;
+      }
+      function getMessageEl(id) {
+        return list.querySelector(`[data-msg="${id}"]`);
+      }
+
+      // ─── Mock backend (today) ───────────────────────────────────────
+      // Real LangChain backend will live at /api/chat. Today we mock it:
+      //  1. emit a "search" tool call (as if retriever was invoked)
+      //  2. stream a templated answer token-by-token
+      //  3. attach source citations
+      // The protocol is a function call (sync), but its structure mirrors
+      // the SSE event shape: {type:'tool_call'} {type:'token'} {type:'sources'} {type:'done'}.
+
+      function mockReply(userText) {
+        const q = userText.trim().toLowerCase();
+        const tokens = q.split(/[\s,，、]+/).filter(Boolean);
+
+        // 1. retrieval — rank indexable by keyword overlap
+        const hits = indexable
           .map(it => {
-            const hay = `${it.title} ${it.description}`.toLowerCase();
+            const hay = (it.title + ' ' + it.description).toLowerCase();
             let s = 0;
             for (const t of tokens) {
-              if (!t) continue;
               if (hay.includes(t)) s += 1;
               if (it.title.toLowerCase().includes(t)) s += 1;
             }
@@ -325,157 +380,184 @@ const clientData = { commands, allIndexable };
           })
           .filter(x => x.score > 0)
           .sort((a, b) => b.score - a.score)
-          .slice(0, 5);
+          .slice(0, 4);
 
-        setTimeout(() => {
-          if (scored.length === 0) {
-            appendLog([
-              { cls: 'text-text-faint', text: `# no match. try: /latest /demos /cases /about` },
-            ]);
-            setStatus('done');
-            pushHistory(q, 'no-match');
-            return;
-          }
-          const rows = [];
-          rows.push({ cls: 'text-text-faint', text: `# retrieved ${scored.length} of ${allIndexable.length}  (tokens: ${tokens.map(t => '[' + t + ']').join(' ')})` });
-          for (const it of scored) {
-            const href = slugToHref(it.slug);
-            const title = escHtml(it.title);
-            const desc = escHtml(it.description || '');
-            rows.push({
-              cls: 'text-text',
-              html: `<span class="text-[var(--color-accent)] select-none" aria-hidden="true">→</span> ` +
-                    `<a class="hover:text-[var(--color-accent)] underline decoration-[var(--color-accent)] decoration-1 underline-offset-4 transition-colors" href="${href}">${title}</a>` +
-                    (desc ? ` <span class="text-text-faint">— ${desc.slice(0, 80)}</span>` : ''),
-            });
-          }
-          appendLog(rows);
-          setStatus('matched');
-          pushHistory(q, `free-text:${scored.length} hits`);
-        }, 280);
-      }
-
-      function pushHistory(q, matched) {
-        const h = getHistory();
-        h.push({ q, matched, time: ts() });
-        saveHistory(h.slice(-50));
-        if (historyStamp) historyStamp.textContent = 'history: ' + Math.min(h.length, 50);
-      }
-
-      // Input → echo + state
-      function onInput() {
-        const v = input.value;
-        state.value = v;
-        if (echo) echo.textContent = v;
-        if (tokenCount) tokenCount.textContent = String(v.length);
-        if (v.startsWith('/') && v.length > 0 && !v.includes(' ')) {
-          palette.classList.remove('hidden');
-          // highlight matching command
-          if (paletteList) {
-            paletteList.querySelectorAll('[data-cmd]').forEach(btn => {
-              const tok = btn.getAttribute('data-cmd') || '';
-              const match = v === '/' || tok.startsWith(v);
-              btn.style.opacity = match ? '1' : '0.35';
-            });
-          }
+        // 2. pick a template by intent
+        let template;
+        if (q.includes('联系') || q.includes('合作') || q.includes('email') || q.includes('邮箱')) {
+          template = {
+            head: '联系方式：',
+            body: '邮箱 [hello@moyuanhua.dev](mailto:hello@moyuanhua.dev)。在 [1] 里有更详细的现在在做的事。',
+            cites: [{ n: 1, idx: indexable.findIndex(x => x.id === 'about') }],
+          };
+        } else if (q.includes('demo') || q.includes('玩') || q.includes('可玩')) {
+          template = {
+            head: '站上有 ' + (indexable.filter(x => x.type === 'demo').length) + ' 个可玩 demo：',
+            body: '[1] 粒子引力场 — 纯前端物理模拟，无后端。\\n其它按需在 [2] 文章流里翻。',
+            cites: [
+              { n: 1, idx: indexable.findIndex(x => x.id === 'particle-gravity') },
+              { n: 2, idx: indexable.findIndex(x => x.id === 'ai-sites') },
+            ],
+          };
+        } else if (q.includes('案例') || q.includes('项目') || q.includes('做')) {
+          const caseIdxs = indexable
+            .map((x, i) => (x.tags && x.tags.includes('case')) ? i : -1)
+            .filter(i => i >= 0)
+            .slice(0, 3);
+          template = {
+            head: '3 个真实落地路径：',
+            body: '[1] ' + (indexable[caseIdxs[0]]?.title || '—') + ' — ' + (indexable[caseIdxs[0]]?.description || '') +
+                  '\\n[2] ' + (indexable[caseIdxs[1]]?.title || '—') + '\\n[3] ' + (indexable[caseIdxs[2]]?.title || '—'),
+            cites: caseIdxs.map((idx, i) => ({ n: i + 1, idx })),
+          };
+        } else if (q.includes('最近') || q.includes('写') || q.includes('更新')) {
+          const recent = indexable.slice(0, 3);
+          template = {
+            head: '最近 3 篇：',
+            body: '[1] ' + recent[0]?.title + '\\n[2] ' + recent[1]?.title + '\\n[3] ' + recent[2]?.title,
+            cites: [0, 1, 2].map(i => ({ n: i + 1, idx: i })),
+          };
+        } else if (tokens.length === 0) {
+          template = { head: '', body: '（空问题）', cites: [] };
         } else {
-          palette.classList.add('hidden');
+          if (hits.length === 0) {
+            template = {
+              head: '站内 ' + indexable.length + ' 条内容里没直接匹配。',
+              body: '试试 /latest /demos /cases /about，或者换个词。',
+              cites: [],
+            };
+          } else {
+            const top = hits[0];
+            template = {
+              head: '最相关的：',
+              body: '[1] [' + top.title + '](' + top.href + ') — ' + top.description,
+              cites: [{ n: 1, idx: indexable.indexOf(top) }],
+            };
+          }
         }
-        if (v.length > 0) setStatus('typing'); else setStatus('idle');
+
+        // 3. shape the tool call (the mock retriever), sources, and full answer
+        const sources = (template.cites || [])
+          .map(c => indexable[c.idx])
+          .filter(Boolean)
+          .map(it => ({ id: it.id, title: it.title, href: it.href }));
+        const toolCall = {
+          id: 'call_' + Math.random().toString(36).slice(2, 8),
+          name: 'search_site',
+          args: { query: userText, k: 4 },
+          output: { hits: sources.map(s => ({ id: s.id, title: s.title })) },
+        };
+        const fullText = (template.head ? template.head + '\n' : '') + template.body;
+        return { toolCall, sources, fullText };
       }
 
-      function restoreFromHistory() {
-        const h = getHistory();
-        if (h.length > 0 && historyStamp) historyStamp.textContent = 'history: ' + Math.min(h.length, 50);
-        // also render the last 5 lines in the log so the user has context
-        const last = h.slice(-5);
-        for (const item of last) {
-          appendLog([{ cls: 'text-text-faint', html: renderHistoryLine(item) }]);
+      // Stream a full reply (token-by-token) into the assistant message.
+      async function streamReply(assistantMsg, payload) {
+        const { toolCall, sources, fullText } = payload;
+        // 1. thinking state — already rendered
+
+        // 2. tool call
+        await sleep(220);
+        assistantMsg.toolCalls.push(toolCall);
+        saveThread(thread);
+        const root = getMessageEl(assistantMsg.id);
+        if (root) {
+          // re-render: easiest is to wipe and rebuild from the message object
+          list.removeChild(root);
+          renderMessage(assistantMsg);
+        }
+
+        // 3. stream tokens
+        assistantMsg.status = 'streaming';
+        saveThread(thread);
+        setStatus('streaming');
+        const tokens = fullText.split(/(\s+)/);  // keep whitespace
+        let acc = '';
+        for (let i = 0; i < tokens.length; i++) {
+          acc += tokens[i];
+          assistantMsg.content = acc;
+          const root2 = getMessageEl(assistantMsg.id);
+          if (root2) {
+            const body = root2.querySelector('.chat-content');
+            if (body) {
+              body.innerHTML = renderMarkdown(acc) + '<span class="chat-stream-cursor"></span>';
+            }
+          }
+          scrollToBottom();
+          await sleep(18 + Math.random() * 30);
+        }
+
+        // 4. sources
+        await sleep(180);
+        assistantMsg.sources = sources;
+        saveThread(thread);
+        const root3 = getMessageEl(assistantMsg.id);
+        if (root3) {
+          list.removeChild(root3);
+          renderMessage(assistantMsg);
+        }
+
+        // 5. done
+        assistantMsg.status = 'done';
+        saveThread(thread);
+        const rootDone = getMessageEl(assistantMsg.id);
+        if (rootDone) { list.removeChild(rootDone); renderMessage(assistantMsg); }
+        setStatus('done');
+        sendBtn.disabled = false;
+        input.disabled = false;
+        input.focus();
+      }
+
+      function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+      async function handleSubmit(text) {
+        const q = (text || '').trim();
+        if (!q) return;
+        sendBtn.disabled = true;
+        input.disabled = true;
+        setStatus('sending');
+        appendUserMessage(q);
+        setStatus('thinking');
+        const assistantMsg = createAssistantMessage();
+        renderMessage(assistantMsg);
+        try {
+          const payload = mockReply(q);
+          await streamReply(assistantMsg, payload);
+        } catch (err) {
+          assistantMsg.content = '（出错了：' + (err && err.message ? err.message : err) + '）';
+          assistantMsg.status = 'done';
+          saveThread(thread);
+          setStatus('done');
+          sendBtn.disabled = false;
+          input.disabled = false;
         }
       }
 
-      // Events
-      input.addEventListener('input', onInput);
-      input.addEventListener('focus', () => setStatus(state.value ? 'typing' : 'idle'));
-      input.addEventListener('blur',  () => setStatus(state.value ? 'typing' : 'idle'));
-
+      // Wire events
       form.addEventListener('submit', (e) => {
         e.preventDefault();
-        const v = input.value;
-        if (!v.trim()) return;
-        execute(v);
+        const text = input.value;
         input.value = '';
-        onInput();
+        autoSize();
+        handleSubmit(text);
       });
-
-      // Palette click → prefill input
-      if (paletteList) {
-        paletteList.addEventListener('click', (e) => {
-          const btn = e.target.closest('[data-cmd]');
-          if (!btn) return;
-          input.value = btn.getAttribute('data-cmd');
-          onInput();
-          input.focus();
-        });
-      }
-
-      // Keyboard: ↑↓ history, ⌘K focus, Esc clear
-      let historyIndex = -1;
-      let draftBuffer = '';
       input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
           e.preventDefault();
-          historyIndex = -1;
-          draftBuffer = '';
           form.requestSubmit();
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          const h = getHistory();
-          if (h.length === 0) return;
-          if (historyIndex === -1) { draftBuffer = input.value; historyIndex = h.length; }
-          if (historyIndex > 0) historyIndex--;
-          input.value = h[historyIndex]?.q || '';
-          onInput();
-        } else if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          const h = getHistory();
-          if (historyIndex === -1) return;
-          if (historyIndex < h.length - 1) {
-            historyIndex++;
-            input.value = h[historyIndex]?.q || '';
-          } else {
-            historyIndex = -1;
-            input.value = draftBuffer;
-          }
-          onInput();
-        } else if (e.key === 'Escape') {
-          e.preventDefault();
-          input.value = '';
-          onInput();
-          palette.classList.add('hidden');
         }
       });
+      function autoSize() {
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+      }
+      input.addEventListener('input', autoSize);
 
-      // ⌘K / Ctrl-K focus
-      document.addEventListener('keydown', (e) => {
-        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-          e.preventDefault();
-          input.focus();
-          input.select();
-        }
-      });
-
-      // Click stage to focus input
-      document.querySelector('[data-stage]')?.addEventListener('click', (e) => {
-        if (e.target.closest('a, button, [data-palette]')) return;
-        input.focus();
-      });
-
-      // Boot
-      restoreFromHistory();
+      // Boot — restore previous thread
+      for (const m of thread.messages) renderMessage(m);
+      if (thread.messages.length > 0) scrollToBottom();
       setStatus('idle');
-      // autofocus on desktop
-      if (window.matchMedia('(min-width: 640px)').matches) input.focus();
+      input.focus();
     })();
   </script>
 </BaseLayout>
