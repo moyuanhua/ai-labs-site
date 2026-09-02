@@ -5,11 +5,12 @@
    + bone-white. Single accent: teal-700 (light, AA on bone) / #5eead4
    (dark, AA on charcoal). All neutrals are WARM (no zinc here).
 
-   `@theme inline` makes Tailwind utilities resolve the variable at use,
-   so per-scheme overrides in :root under @media just re-light the same
-   vars. Order matters: @theme first, then :root defaults, then dark block.
+   `@theme` (no `inline`) registers variables so Tailwind generates
+   utilities that reference var() at runtime. The dark media query
+   override then re-lights them automatically. Order matters: @theme
+   first, then :root defaults, then dark block.
    ────────────────────────────────────────────────────────────────────── */
-@theme inline {
+@theme {
   --color-bg:         #f4f1ea;
   --color-surface:    #ece8dd;
   --color-surface-2:  #e0dccf;
