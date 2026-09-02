@@ -1,4 +1,5 @@
 ---
+import HeroOrb from './HeroOrb.astro';
 interface Props {
   variant: 'hero' | 'dock';
 }
@@ -60,18 +61,15 @@ const STATUS_BG = 'background: var(--color-accent);';
 {variant === 'dock' && (
   <a
     href={`${BASE}chat`}
-    transition:name="chat-layer"
     data-chat-dock
-    class="chat-dock fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full border flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-105"
-    style="background: var(--color-surface); border-color: var(--color-border);"
     aria-label="打开对话"
+    class="chat-dock fixed bottom-4 left-1/2 -translate-x-1/2 z-30 w-[88px] h-[88px] cursor-pointer transition-transform duration-300 hover:scale-110"
+    onmouseenter="window.__MOYUANHUA_orbState='typing'"
+    onmouseleave="window.__MOYUANHUA_orbState='idle'"
+    onfocus="window.__MOYUANHUA_orbState='typing'"
+    onblur="window.__MOYUANHUA_orbState='idle'"
   >
-    <i
-      class="ph ph-chat-circle-dots text-xl"
-      style="color: var(--color-accent);"
-      aria-hidden="true"
-    ></i>
-    <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full chat-dock-dot" style="display:none; background: var(--color-accent);"></span>
+    <HeroOrb size={88} />
   </a>
 )}
 
