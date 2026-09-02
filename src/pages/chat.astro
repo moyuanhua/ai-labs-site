@@ -1,163 +1,217 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import HeroOrb from '../components/HeroOrb.astro';
 import { getCollection } from 'astro:content';
 const BASE = import.meta.env.BASE_URL;
 
-// Pull real site content so mock answers are grounded — not generic.
-// Cited as [1] [2] in replies to make the placeholder feel like RAG
-// rather than a fake chat demo.
+// Pull real site content. Chat is a query interface, not a demo:
+// it surfaces the actual posts, demos, cases, and contact routes so
+// the user can jump straight to the right page.
+
 const posts = (await getCollection('posts'))
   .filter(p => !p.data.draft)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-const latest = posts.slice(0, 3).map(p => ({ title: p.data.title, slug: p.id, type: p.data.type }));
-const demos = posts.filter(p => p.data.type === 'demo').slice(0, 3).map(p => ({ title: p.data.title, slug: p.id }));
-const cases = posts.filter(p => p.data.tags?.includes('case')).slice(0, 3).map(p => ({ title: p.data.title, slug: p.id }));
+const byType = (t: string) =>
+  posts.filter(p => p.data.type === t).map(p => ({
+    title: p.data.title,
+    slug: p.id,
+    type: p.data.type,
+    description: p.data.description,
+  }));
 
-// Hand-tuned prompts each with a grounded reply template. The reply
-// references a real post + a real link so it never feels empty.
-const suggestions = [
-  {
-    q: '最近在写什么？',
-    reply: '最近在写 3 篇：\n[1] {latest0}\n[2] {latest1}\n[3] {latest2}\n都偏实战 —— 拆 demo 怎么上 prod。',
-    cite: 'latest',
-  },
-  {
-    q: '有哪些可以玩的 demo？',
-    reply: '站上有几个交互 demo：\n[1] {demo0}\n[2] {demo1}\n[3] {demo2}\n都是浏览器直接跑，不依赖后端。',
-    cite: 'demo',
-  },
-  {
-    q: '做过哪些 AI 落地项目？',
-    reply: '案例里 3 个可看：\n[1] {case0}\n[2] {case1}\n[3] {case2}\n都是 demo → 生产的真实路径，不是 PPT。',
-    cite: 'case',
-  },
-  {
-    q: '你是怎么用 AI 干活的？',
-    reply: '我的工作流：3 个 Agent 协作 —— 拆解 / 实现 / 评审。\n具体拆解写在 [1] {latest0}。\n工具箱在 /tools，都是可复用的。',
-    cite: 'latest',
-  },
-  {
-    q: '怎么联系 / 怎么合作？',
-    reply: '邮箱 [hello@moyuanhua.dev](mailto:hello@moyuanhua.dev)。\n在 /about 有更详细的现在在做的事。',
-    cite: 'meta',
-  },
+const latest = posts.slice(0, 3).map(p => ({ title: p.data.title, slug: p.id, description: p.data.description }));
+const demos = byType('demo').slice(0, 3);
+const cases = posts.filter(p => p.data.tags?.includes('case')).slice(0, 3)
+  .map(p => ({ title: p.data.title, slug: p.id, description: p.data.description }));
+
+// command registry — slash tokens surface a fixed list of links
+// without scoring. There is no "best match" fuzzy magic: the user
+// types a slash, picks a command, gets a deterministic list.
+const commands = [
+  { token: '/latest', label: '最近 3 篇文章', items: latest, kind: 'post' as const },
+  { token: '/demos',  label: '可玩的 demo',     items: demos,  kind: 'demo' as const },
+  { token: '/cases',  label: '落地案例',         items: cases,  kind: 'case' as const },
+  { token: '/about',  label: '关于 & 联系方式',   items: [
+      { title: '关于 moyuanhua', slug: 'about', description: 'AI 落地工程师 · 工作流 · 工具箱' },
+      { title: '工具箱',         slug: 'tools', description: '可复用的脚本、模板、Agent 集合' },
+    ], kind: 'meta' as const },
 ];
 
-function fillTemplate(t: string): string {
-  return t
-    .replaceAll('{latest0}', latest[0]?.title ?? '—')
-    .replaceAll('{latest1}', latest[1]?.title ?? '—')
-    .replaceAll('{latest2}', latest[2]?.title ?? '—')
-    .replaceAll('{demo0}', demos[0]?.title ?? '—')
-    .replaceAll('{demo1}', demos[1]?.title ?? '—')
-    .replaceAll('{demo2}', demos[2]?.title ?? '—')
-    .replaceAll('{case0}', cases[0]?.title ?? '—')
-    .replaceAll('{case1}', cases[1]?.title ?? '—')
-    .replaceAll('{case2}', cases[2]?.title ?? '—');
+// free-text query scoring: rank posts by simple keyword overlap.
+// Exposed to the client via <script type="application/json">.
+type Item = { title: string; slug: string; description: string };
+function scoreItems(items: Item[], q: string) {
+  const tokens = q.toLowerCase().split(/[\s,，、]+/).filter(t => t.length > 0);
+  if (tokens.length === 0) return items.map(it => ({ ...it, score: 0 }));
+  return items
+    .map(it => {
+      const hay = `${it.title} ${it.description}`.toLowerCase();
+      let s = 0;
+      for (const t of tokens) {
+        if (!t) continue;
+        if (hay.includes(t)) s += 1;
+        if (it.title.toLowerCase().includes(t)) s += 1; // title match weighs double
+      }
+      return { ...it, score: s };
+    })
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score);
 }
 
-const filled = suggestions.map(s => ({ q: s.q, reply: fillTemplate(s.reply), cite: s.cite }));
+const allIndexable: Item[] = posts.map(p => ({
+  title: p.data.title,
+  slug: p.id,
+  description: p.data.description,
+}));
 
-// Map each reply to a list of {n, href, label} for footnote rendering.
-function citesFor(s: { cite: string; reply: string }) {
-  const items: { n: number; href: string; label: string }[] = [];
-  let n = 1;
-  if (s.cite === 'latest') {
-    for (const p of latest.slice(0, 3)) items.push({ n: n++, href: `${BASE}posts/${p.slug}`, label: p.title });
-  } else if (s.cite === 'demo') {
-    for (const p of demos.slice(0, 3)) items.push({ n: n++, href: `${BASE}posts/${p.slug}`, label: p.title });
-  } else if (s.cite === 'case') {
-    for (const p of cases.slice(0, 3)) items.push({ n: n++, href: `${BASE}posts/${p.slug}`, label: p.title });
-  } else {
-    items.push({ n: 1, href: `${BASE}about`, label: '关于页' });
-  }
-  return items;
-}
-const enriched = filled.map(s => ({ ...s, cites: citesFor(s) }));
+const clientData = { commands, allIndexable };
 ---
 
-<BaseLayout title="对话 · moyuanhua" description="和 moyuanhua 的 AI 聊这个站上的内容" chatVariant="none" bgIntensity="ambient" hideNav hideFooter>
-  <div class="chat-shell relative h-screen w-full flex flex-col bg-bg text-text overflow-hidden">
-    <!-- minimal header -->
-    <header class="shrink-0 h-12 px-4 sm:px-6 flex items-center justify-between border-b border-border bg-bg/85 backdrop-blur-md">
-      <a href={BASE} class="inline-flex items-center gap-2 text-sm font-heading font-semibold tracking-tight hover:text-accent transition-colors">
-        <span aria-hidden="true">←</span>
-        <span>moyuanhua</span>
-      </a>
-      <div class="flex items-center gap-2 text-[0.65rem] font-mono uppercase tracking-wider text-text-muted">
-        <span class="w-1.5 h-1.5 rounded-[2px]" style="background: var(--color-accent); box-shadow: 0 0 8px var(--color-accent);"></span>
-        <span>ai 待机 · 待接入</span>
+<BaseLayout title="对话 · moyuanhua" description="一个 query interface — 搜这个站的内容、跑命令、跳到目的地" bgIntensity="none" hideNav hideFooter>
+  <div class="chat-shell relative min-h-screen w-full flex flex-col bg-bg text-text font-mono">
+    <!-- status bar: token / state / cmd hint. Always visible, no scroll. -->
+    <header class="shrink-0 h-9 px-4 sm:px-6 flex items-center justify-between border-b border-border bg-bg text-[0.7rem]">
+      <div class="flex items-center gap-3 min-w-0">
+        <a href={BASE} class="inline-flex items-center gap-1.5 text-text-muted hover:text-text transition-colors">
+          <span aria-hidden="true">←</span>
+          <span class="hidden sm:inline">moyuanhua</span>
+        </a>
+        <span class="text-text-faint">·</span>
+        <span class="text-text-muted hidden sm:inline">query interface</span>
+      </div>
+      <div class="flex items-center gap-3 sm:gap-4 text-text-muted">
+        <span class="hidden sm:inline-flex items-center gap-1.5">
+          <kbd class="font-mono text-[0.65rem] px-1.5 py-0.5 rounded-[2px] border border-border text-text-faint">⌘K</kbd>
+          <span>focus</span>
+        </span>
+        <span data-status-pill class="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border border-border text-text-muted">
+          <span data-status-dot class="w-1.5 h-1.5 rounded-[2px]" style="background: var(--color-text-faint);"></span>
+          <span data-status-text>idle</span>
+        </span>
+        <span class="text-text-faint">
+          <span data-token-count>0</span><span class="hidden sm:inline"> ctx</span>
+        </span>
       </div>
     </header>
 
-    <!-- stage: orb + greeting + input + prompts -->
-    <main class="flex-1 min-h-0 overflow-y-auto" data-chat-stage>
-      <section class="mx-auto max-w-3xl px-4 sm:px-6 pt-10 sm:pt-16 pb-8 flex flex-col items-center text-center">
-        <div class="w-[200px] sm:w-[280px]">
-          <HeroOrb size={280} />
-        </div>
-        <p class="mt-6 font-heading text-lg sm:text-2xl font-medium text-text">
-          你好，我是 moyuanhua 的 AI
-        </p>
-        <p class="mt-2 text-xs sm:text-base text-text-muted max-w-[260px] sm:max-w-md mx-auto leading-relaxed">
-          问我的工作、demo、写作。我读过这个站上的全部内容。
-        </p>
-      </section>
+    <!-- terminal stage -->
+    <main class="flex-1 min-h-0 overflow-y-auto" data-stage>
+      <div class="mx-auto max-w-3xl px-4 sm:px-6 py-8 sm:py-14">
+        <!-- welcome log: explains the surface, in CLI voice -->
+        <section aria-label="welcome" class="text-[0.8rem] sm:text-sm leading-relaxed text-text-muted space-y-1 mb-8">
+          <p><span class="text-text-faint">#</span> query interface — v0.1</p>
+          <p><span class="text-text-faint">#</span> 输入 <code class="text-text">/</code> 命令查看站点切片，或直接搜站内 {allIndexable.length} 条内容</p>
+          <p><span class="text-text-faint">#</span> 暂无 LLM 接入。提交 = 站内检索；返回的是真链接，不是回答</p>
+          <p class="text-text-faint"># ↑↓ 历史  ·  ⌫ 清空  ·  ⌘K 聚焦  ·  Esc 退出</p>
+        </section>
 
-      <section class="mx-auto max-w-2xl px-4 sm:px-6 pb-8 sm:pb-12">
-        <!-- input -->
-        <div class="relative">
-          <input
-            data-chat-input
-            type="text"
-            placeholder="随便问点什么…"
-            aria-label="输入问题"
-            class="w-full bg-surface border border-border rounded-[6px] px-4 py-3.5 pr-12 text-sm sm:text-base font-body focus:outline-none focus:border-accent transition-colors"
-            style="background: var(--color-surface);"
-          />
-          <button
-            data-chat-send
-            type="button"
-            class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 inline-flex items-center justify-center rounded-[6px] transition-colors cursor-pointer"
-            style="background: var(--color-accent); color: var(--color-bg);"
-            aria-label="发送"
-          >
-            <i class="ph-bold ph-arrow-up text-base" aria-hidden="true"></i>
-          </button>
+        <!-- command palette: hidden until / is typed -->
+        <div data-palette class="hidden mb-4 border border-border rounded-[6px] bg-surface overflow-hidden">
+          <div class="px-3 py-1.5 text-[0.7rem] text-text-faint border-b border-border bg-bg/60">commands</div>
+          <ul data-palette-list class="divide-y divide-border text-[0.8rem]">
+            {commands.map(c => (
+              <li>
+                <button
+                  type="button"
+                  data-cmd={c.token}
+                  class="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-bg/40 transition-colors"
+                >
+                  <span class="text-text-faint">›</span>
+                  <span class="text-text">{c.token}</span>
+                  <span class="text-text-faint">—</span>
+                  <span class="text-text-muted">{c.label}</span>
+                  <span class="ml-auto text-text-faint">{c.items.length}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <!-- prompt chips -->
-        <div class="mt-4 flex flex-wrap gap-2 justify-center max-w-full">
-          {enriched.map(s => (
-            <button
-              data-suggestion
-              data-q={s.q}
-              type="button"
-              class="text-xs sm:text-sm font-body px-3 py-1.5 rounded-[3px] border transition-colors cursor-pointer whitespace-nowrap"
-              style="border-color: var(--color-text-faint); color: var(--color-text);"
-            >
-              {s.q}
-            </button>
-          ))}
-        </div>
+        <!-- prompt: $ chat --topic=... (cursor lives at the end) -->
+        <form data-prompt-form class="flex items-start gap-2 text-base sm:text-lg leading-relaxed" autocomplete="off">
+          <label for="q" class="shrink-0 select-none text-text-muted">$</label>
+          <span class="shrink-0 text-text-muted">chat</span>
+          <span class="shrink-0 text-text-faint">--topic=</span>
+          <div class="relative flex-1 min-w-0">
+            <span data-echo class="whitespace-pre-wrap break-words text-text" aria-hidden="true"></span>
+            <span data-caret class="inline-block w-[0.55ch] h-[1em] align-text-bottom ml-px" style="background: var(--color-accent); animation: caret-blink 1s steps(1) infinite;"></span>
+            <input
+              id="q"
+              data-q
+              type="text"
+              spellcheck="false"
+              autocapitalize="off"
+              autocorrect="off"
+              placeholder="最近写了什么  /agent  怎么联系 /"
+              aria-label="query"
+              class="absolute inset-0 w-full h-full opacity-0 cursor-text text-transparent caret-transparent focus:outline-none"
+            />
+          </div>
+        </form>
 
-        <!-- conversation appears here after first send -->
-        <div data-chat-thread class="mt-8 sm:mt-10 space-y-5"></div>
-      </section>
+        <!-- inline hint row: when /palette is open or query is empty -->
+        <p data-hint class="mt-2 text-[0.7rem] text-text-faint">↵ 执行  ·  /  打开命令  ·  ↑↓ 历史</p>
+
+        <!-- output log: terminal-style, one line per row, no bubbles -->
+        <div data-log class="mt-8 space-y-1 text-[0.8rem] sm:text-sm"></div>
+      </div>
     </main>
+
+    <!-- footer: file path of the page, monospace. Stays put. -->
+    <footer class="shrink-0 h-7 px-4 sm:px-6 flex items-center justify-between border-t border-border text-[0.65rem] text-text-faint">
+      <span>src/pages/chat.astro</span>
+      <span data-history-stamp>history: 0</span>
+    </footer>
   </div>
 
-  <script id="chat-data" type="application/json" set:html={JSON.stringify(enriched)}></script>
+  <script id="chat-data" type="application/json" set:html={JSON.stringify(clientData)}></script>
+
+  <style is:global>
+    @keyframes caret-blink {
+      0%, 50%   { opacity: 1; }
+      50.01%, 100% { opacity: 0; }
+    }
+    [data-stage] ::selection { background: var(--color-accent); color: var(--color-bg); }
+  </style>
 
   <script is:inline>
     (() => {
-      const STORAGE_KEY = 'moyuanhua-chat-history-v2';
+      const STORAGE_KEY = 'moyuanhua-chat-history-v3';
       const dataEl = document.getElementById('chat-data');
       if (!dataEl) return;
-      let enriched = [];
-      try { enriched = JSON.parse(dataEl.textContent || '[]'); } catch { enriched = []; }
+      let data = { commands: [], allIndexable: [] };
+      try { data = JSON.parse(dataEl.textContent || '{}'); } catch { data = { commands: [], allIndexable: [] }; }
+      const commands = data.commands || [];
+      const allIndexable = data.allIndexable || [];
+
+      const form = document.querySelector('[data-prompt-form]');
+      const input = document.querySelector('[data-q]');
+      const echo = document.querySelector('[data-echo]');
+      const log = document.querySelector('[data-log]');
+      const palette = document.querySelector('[data-palette]');
+      const paletteList = document.querySelector('[data-palette-list]');
+      const hint = document.querySelector('[data-hint]');
+      const statusText = document.querySelector('[data-status-text]');
+      const statusDot = document.querySelector('[data-status-dot]');
+      const tokenCount = document.querySelector('[data-token-count]');
+      const historyStamp = document.querySelector('[data-history-stamp]');
+      if (!form || !input || !echo || !log) return;
+
+      const state = { value: '', status: 'idle' };
+
+      function setStatus(s) {
+        state.status = s;
+        const map = {
+          idle:      { label: 'idle',      dot: 'var(--color-text-faint)' },
+          typing:    { label: 'typing',    dot: 'var(--color-accent)' },
+          searching: { label: 'searching', dot: 'var(--color-accent)' },
+          matched:   { label: 'matched',   dot: 'var(--color-accent)' },
+          done:      { label: 'done',      dot: 'var(--color-text-faint)' },
+        };
+        const m = map[s] || map.idle;
+        if (statusText) statusText.textContent = m.label;
+        if (statusDot)  statusDot.style.background = m.dot;
+      }
 
       function getHistory() {
         try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
@@ -165,168 +219,263 @@ const enriched = filled.map(s => ({ ...s, cites: citesFor(s) }));
       }
       function saveHistory(h) { localStorage.setItem(STORAGE_KEY, JSON.stringify(h)); }
 
-      function renderReplyWithCitations(text, cites) {
-        // Convert "[1] foo\n[2] bar" into a list of two lines and a footnote row.
-        // Strategy: split off the leading "headline" line (no '[n]') and the
-        // remaining [n] lines, render them as bullets, then a footnote row.
-        const wrap = document.createElement('div');
-        wrap.className = 'rounded-[6px] border p-4 chat-bubble-enter';
-        wrap.style.background = 'var(--color-surface)';
-        wrap.style.borderColor = 'var(--color-border)';
+      function ts() {
+        const d = new Date();
+        return d.toTimeString().slice(0, 8);
+      }
 
-        const lines = text.split('\n');
-        const head = [];
-        const citesText = [];
-        for (const line of lines) {
-          if (/^\[\d+\]/.test(line)) citesText.push(line);
-          else head.push(line);
-        }
+      function slugToHref(slug) {
+        const BASE = (document.querySelector('a[href^="/"]')?.getAttribute('href') || '/');
+        if (slug === 'about') return BASE + 'about';
+        if (slug === 'tools') return BASE + 'tools';
+        return BASE + 'posts/' + slug;
+      }
 
-        if (head.length) {
-          const p = document.createElement('div');
-          p.className = 'text-sm sm:text-base font-body leading-relaxed text-text whitespace-pre-line';
-          p.textContent = head.join('\n');
-          wrap.appendChild(p);
+      function appendLog(rows) {
+        const frag = document.createDocumentFragment();
+        for (const r of rows) {
+          const el = document.createElement('div');
+          el.className = r.cls || 'text-text-muted';
+          if (r.prompt) {
+            const p = document.createElement('span');
+            p.className = 'text-text-muted select-none';
+            p.textContent = '$ ';
+            el.appendChild(p);
+          }
+          if (r.html) {
+            el.innerHTML = r.html;
+          } else {
+            el.textContent = r.text || '';
+          }
+          frag.appendChild(el);
         }
-        if (citesText.length) {
-          const ul = document.createElement('ul');
-          ul.className = 'mt-2 space-y-1 list-none';
-          for (const line of citesText) {
-            const li = document.createElement('li');
-            li.className = 'text-sm font-body text-text-muted flex items-start gap-2';
-            const m = line.match(/^\[(\d+)\]\s*(.+)$/);
-            if (m) {
-              const num = m[1];
-              const label = m[2].trim();
-              const cite = (cites || []).find(c => String(c.n) === num);
-              if (cite) {
-                const a = document.createElement('a');
-                a.href = cite.href;
-                a.className = 'hover:text-accent transition-colors underline decoration-text-faint underline-offset-2';
-                a.style.color = 'var(--color-text)';
-                a.textContent = `[${num}] ${label}`;
-                li.appendChild(a);
-              } else {
-                li.textContent = line;
-              }
-            } else {
-              li.textContent = line;
+        log.appendChild(frag);
+        const stage = document.querySelector('[data-stage]');
+        if (stage) stage.scrollTop = stage.scrollHeight;
+      }
+
+      function escHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+      }
+
+      function findCommand(q) {
+        const trimmed = q.trim();
+        for (const c of commands) {
+          if (trimmed === c.token || trimmed.startsWith(c.token + ' ') || trimmed.startsWith(c.token + '\t')) return c;
+        }
+        return null;
+      }
+
+      function renderHistoryLine(h) {
+        const safe = escHtml(h.q);
+        const time = escHtml(h.time || '--:--:--');
+        const matched = h.matched ? escHtml(h.matched) : '—';
+        return `<span class="text-text-faint">${time}</span> ` +
+               `<span class="text-text-muted select-none">|</span> ` +
+               `<span class="text-text">${safe}</span> ` +
+               `<span class="text-text-faint">→</span> ` +
+               `<span class="text-text-muted">${matched}</span>`;
+      }
+
+      function execute(q) {
+        if (!q || !q.trim()) return;
+        const time = ts();
+
+        setStatus('searching');
+        appendLog([{ prompt: true, text: q }]);
+
+        // 1) slash command
+        const cmd = findCommand(q);
+        if (cmd) {
+          setTimeout(() => {
+            const rows = [];
+            rows.push({ cls: 'text-text-faint', text: `# matched: command ${cmd.token} (${cmd.items.length} items)` });
+            for (const it of cmd.items) {
+              const href = slugToHref(it.slug);
+              const title = escHtml(it.title);
+              rows.push({
+                cls: 'text-text',
+                html: `<span class="text-[var(--color-accent)] select-none" aria-hidden="true">→</span> ` +
+                      `<a class="hover:text-[var(--color-accent)] underline decoration-[var(--color-accent)] decoration-1 underline-offset-4 transition-colors" href="${href}">${title}</a>`,
+              });
             }
-            ul.appendChild(li);
-          }
-          wrap.appendChild(ul);
+            appendLog(rows);
+            setStatus('matched');
+            pushHistory(q, `command:${cmd.token}`);
+          }, 220);
+          return;
         }
 
-        // footnote row mapping [n] → real link, with the *real* link label
-        if (cites && cites.length) {
-          const foot = document.createElement('div');
-          foot.className = 'mt-3 pt-3 border-t flex flex-wrap gap-3 text-[0.7rem] font-mono uppercase tracking-wider text-text-faint';
-          foot.style.borderColor = 'var(--color-border)';
-          for (const c of cites) {
-            const a = document.createElement('a');
-            a.href = c.href;
-            a.className = 'hover:text-accent transition-colors';
-            a.textContent = `[${c.n}] → ${c.label}`;
-            foot.appendChild(a);
-          }
-          wrap.appendChild(foot);
+        // 2) free-text: rank indexable items by keyword overlap
+        const tokens = q.toLowerCase().split(/[\s,，、]+/).filter(t => t.length > 0);
+        if (tokens.length === 0) {
+          setStatus('idle');
+          return;
         }
-        return wrap;
-      }
+        const scored = allIndexable
+          .map(it => {
+            const hay = `${it.title} ${it.description}`.toLowerCase();
+            let s = 0;
+            for (const t of tokens) {
+              if (!t) continue;
+              if (hay.includes(t)) s += 1;
+              if (it.title.toLowerCase().includes(t)) s += 1;
+            }
+            return { ...it, score: s };
+          })
+          .filter(x => x.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 5);
 
-      function renderUserBubble(text) {
-        const div = document.createElement('div');
-        div.className = 'rounded-[6px] p-3 text-sm sm:text-base font-body ml-auto max-w-[85%] chat-bubble-enter';
-        div.style.background = 'var(--color-accent)';
-        div.style.color = 'var(--color-bg)';
-        div.textContent = text;
-        return div;
-      }
-
-      function renderTyping() {
-        const div = document.createElement('div');
-        div.className = 'rounded-[6px] border p-3 inline-flex gap-1';
-        div.style.background = 'var(--color-surface)';
-        div.style.borderColor = 'var(--color-border)';
-        div.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
-        return div;
-      }
-
-      function bestMatch(q) {
-        // simple keyword match against suggestion questions
-        const ql = q.toLowerCase();
-        let best = enriched[0];
-        let bestScore = 0;
-        for (const s of enriched) {
-          const sl = s.q.toLowerCase();
-          let score = 0;
-          for (const w of sl.split(/\s+/)) {
-            if (w.length > 1 && ql.includes(w)) score++;
-          }
-          if (score > bestScore) { best = s; bestScore = score; }
-        }
-        return best;
-      }
-
-      function appendExchange(q, reply, cites) {
-        const thread = document.querySelector('[data-chat-thread]');
-        if (!thread) return;
-        thread.appendChild(renderUserBubble(q));
-        const typing = renderTyping();
-        thread.appendChild(typing);
-        thread.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        window.__MOYUANHUA_orbState = 'replying';
         setTimeout(() => {
-          typing.remove();
-          thread.appendChild(renderReplyWithCitations(reply, cites));
-          window.__MOYUANHUA_orbState = 'idle';
-          thread.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        }, 700);
-      }
-
-      function init() {
-        const input = document.querySelector('[data-chat-input]');
-        const sendBtn = document.querySelector('[data-chat-send]');
-        const thread = document.querySelector('[data-chat-thread]');
-        if (!input || !sendBtn || !thread) return;
-
-        // restore prior conversation
-        const history = getHistory();
-        for (const h of history) {
-          if (h.role === 'user') thread.appendChild(renderUserBubble(h.text));
-          else {
-            const s = enriched.find(x => x.q === h.matchQ);
-            thread.appendChild(renderReplyWithCitations(h.text, s ? s.cites : []));
+          if (scored.length === 0) {
+            appendLog([
+              { cls: 'text-text-faint', text: `# no match. try: /latest /demos /cases /about` },
+            ]);
+            setStatus('done');
+            pushHistory(q, 'no-match');
+            return;
           }
+          const rows = [];
+          rows.push({ cls: 'text-text-faint', text: `# retrieved ${scored.length} of ${allIndexable.length}  (tokens: ${tokens.map(t => '[' + t + ']').join(' ')})` });
+          for (const it of scored) {
+            const href = slugToHref(it.slug);
+            const title = escHtml(it.title);
+            const desc = escHtml(it.description || '');
+            rows.push({
+              cls: 'text-text',
+              html: `<span class="text-[var(--color-accent)] select-none" aria-hidden="true">→</span> ` +
+                    `<a class="hover:text-[var(--color-accent)] underline decoration-[var(--color-accent)] decoration-1 underline-offset-4 transition-colors" href="${href}">${title}</a>` +
+                    (desc ? ` <span class="text-text-faint">— ${desc.slice(0, 80)}</span>` : ''),
+            });
+          }
+          appendLog(rows);
+          setStatus('matched');
+          pushHistory(q, `free-text:${scored.length} hits`);
+        }, 280);
+      }
+
+      function pushHistory(q, matched) {
+        const h = getHistory();
+        h.push({ q, matched, time: ts() });
+        saveHistory(h.slice(-50));
+        if (historyStamp) historyStamp.textContent = 'history: ' + Math.min(h.length, 50);
+      }
+
+      // Input → echo + state
+      function onInput() {
+        const v = input.value;
+        state.value = v;
+        if (echo) echo.textContent = v;
+        if (tokenCount) tokenCount.textContent = String(v.length);
+        if (v.startsWith('/') && v.length > 0 && !v.includes(' ')) {
+          palette.classList.remove('hidden');
+          // highlight matching command
+          if (paletteList) {
+            paletteList.querySelectorAll('[data-cmd]').forEach(btn => {
+              const tok = btn.getAttribute('data-cmd') || '';
+              const match = v === '/' || tok.startsWith(v);
+              btn.style.opacity = match ? '1' : '0.35';
+            });
+          }
+        } else {
+          palette.classList.add('hidden');
         }
+        if (v.length > 0) setStatus('typing'); else setStatus('idle');
+      }
 
-        function submit(text) {
-          const q = (text || '').trim();
-          if (!q) return;
-          const matched = bestMatch(q);
-          appendExchange(q, matched.reply, matched.cites);
-          const h = getHistory();
-          h.push({ role: 'user', text: q, ts: Date.now() });
-          h.push({ role: 'ai', text: matched.reply, matchQ: matched.q, ts: Date.now() });
-          saveHistory(h);
-          input.value = '';
+      function restoreFromHistory() {
+        const h = getHistory();
+        if (h.length > 0 && historyStamp) historyStamp.textContent = 'history: ' + Math.min(h.length, 50);
+        // also render the last 5 lines in the log so the user has context
+        const last = h.slice(-5);
+        for (const item of last) {
+          appendLog([{ cls: 'text-text-faint', html: renderHistoryLine(item) }]);
         }
+      }
 
-        sendBtn.addEventListener('click', () => submit(input.value));
-        input.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(input.value); }
-        });
+      // Events
+      input.addEventListener('input', onInput);
+      input.addEventListener('focus', () => setStatus(state.value ? 'typing' : 'idle'));
+      input.addEventListener('blur',  () => setStatus(state.value ? 'typing' : 'idle'));
 
-        document.querySelectorAll('[data-suggestion]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const q = btn.getAttribute('data-q') || '';
-            submit(q);
-          });
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const v = input.value;
+        if (!v.trim()) return;
+        execute(v);
+        input.value = '';
+        onInput();
+      });
+
+      // Palette click → prefill input
+      if (paletteList) {
+        paletteList.addEventListener('click', (e) => {
+          const btn = e.target.closest('[data-cmd]');
+          if (!btn) return;
+          input.value = btn.getAttribute('data-cmd');
+          onInput();
+          input.focus();
         });
       }
 
-      init();
-      document.addEventListener('astro:page-load', init);
+      // Keyboard: ↑↓ history, ⌘K focus, Esc clear
+      let historyIndex = -1;
+      let draftBuffer = '';
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          historyIndex = -1;
+          draftBuffer = '';
+          form.requestSubmit();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const h = getHistory();
+          if (h.length === 0) return;
+          if (historyIndex === -1) { draftBuffer = input.value; historyIndex = h.length; }
+          if (historyIndex > 0) historyIndex--;
+          input.value = h[historyIndex]?.q || '';
+          onInput();
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const h = getHistory();
+          if (historyIndex === -1) return;
+          if (historyIndex < h.length - 1) {
+            historyIndex++;
+            input.value = h[historyIndex]?.q || '';
+          } else {
+            historyIndex = -1;
+            input.value = draftBuffer;
+          }
+          onInput();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          input.value = '';
+          onInput();
+          palette.classList.add('hidden');
+        }
+      });
+
+      // ⌘K / Ctrl-K focus
+      document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          input.focus();
+          input.select();
+        }
+      });
+
+      // Click stage to focus input
+      document.querySelector('[data-stage]')?.addEventListener('click', (e) => {
+        if (e.target.closest('a, button, [data-palette]')) return;
+        input.focus();
+      });
+
+      // Boot
+      restoreFromHistory();
+      setStatus('idle');
+      // autofocus on desktop
+      if (window.matchMedia('(min-width: 640px)').matches) input.focus();
     })();
   </script>
 </BaseLayout>
