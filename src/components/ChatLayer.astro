@@ -63,13 +63,16 @@ const STATUS_BG = 'background: var(--color-accent);';
     href={`${BASE}chat`}
     data-chat-dock
     aria-label="打开对话"
-    class="chat-dock fixed bottom-4 left-1/2 -translate-x-1/2 z-30 w-[88px] h-[88px] cursor-pointer transition-transform duration-300 hover:scale-110"
+    class="chat-dock fixed bottom-4 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1.5 cursor-pointer transition-transform duration-300 hover:scale-110"
     onmouseenter="window.__MOYUANHUA_orbState='typing'"
     onmouseleave="window.__MOYUANHUA_orbState='idle'"
     onfocus="window.__MOYUANHUA_orbState='typing'"
     onblur="window.__MOYUANHUA_orbState='idle'"
   >
-    <HeroOrb size={88} />
+    <div class="w-[64px] h-[64px]">
+      <HeroOrb size={64} />
+    </div>
+    <span class="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-text-muted" aria-hidden="true">chat</span>
   </a>
 )}
 
