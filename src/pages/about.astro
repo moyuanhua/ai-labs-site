@@ -16,6 +16,7 @@ const isEmpty = (s: AboutSection) => s.items.length === 0;
 const isContactItem = (item: AboutItem): item is { label: string; url: string } =>
   typeof item === 'object' && item !== null && 'label' in item && 'url' in item;
 const allEmpty = sections.every(isEmpty);
+const BASE = import.meta.env.BASE_URL;
 ---
 
 <BaseLayout title="关于 · moyuanhua" description="AI FDE — AI 落地工程师，把 AI 从 demo 干到生产">
@@ -26,6 +27,11 @@ const allEmpty = sections.every(isEmpty);
     <div class="prose-content mb-10">
       <p class="text-text-muted leading-relaxed">AI FDE（AI Forward Deployed Engineer / AI 落地工程师）— 把 AI 从 demo 干到生产。</p>
       <p class="text-text-muted leading-relaxed">SDE = Not Just a Software Development Engineer, but Someone Who Does Everything.</p>
+    </div>
+
+    <div class="prose-content mb-12 border-l pl-5" style="border-color: var(--color-border);">
+      <p class="text-text leading-relaxed">我是 <span class="font-medium">moyuanhua</span>，前端后端云 CI 都碰过的工程师，最近几年主要在做 AI 落地——把大模型和 Agent 塞进真实业务里跑起来，从 demo 一路干到生产。</p>
+      <p class="text-text leading-relaxed">这个站是我工作流的镜子：做过的事、踩过的坑、能直接抄走的工具，都放在这了。</p>
     </div>
 
     {allEmpty && (
@@ -68,6 +74,18 @@ const allEmpty = sections.every(isEmpty);
           )}
         </section>
       ))}
+    </div>
+
+    <div class="mt-16 pt-10 border-t" style="border-color: var(--color-border);">
+      <a
+        href={`${BASE}chat`}
+        class="inline-flex items-center gap-2 rounded-[6px] px-5 py-3 text-sm font-medium transition-opacity hover:opacity-90"
+        style="background: var(--color-accent); color: var(--color-bg);"
+      >
+        <i class="ph-chat-circle-dots text-base leading-none"></i>
+        <span>想快速了解我？和我的 AI 聊聊</span>
+      </a>
+      <p class="font-mono text-xs text-text-muted mt-3">我的 AI 读过这个站上的全部内容，能回答关于我工作、技能、项目的问题。</p>
     </div>
     </div>
   </article>

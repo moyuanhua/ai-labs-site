@@ -4,7 +4,7 @@ date: 2026-09-02
 type: post
 description: "一个 DTC 电商客服系统的 AI 化落地：从方案到上线，记录架构与取舍。"
 tags: [case, livechat, ai]
-draft: true
+draft: false
 ---
 
 <section>

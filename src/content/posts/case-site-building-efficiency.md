@@ -4,7 +4,7 @@ date: 2026-09-02
 type: post
 description: "建站提效专项：把重复的建站流程系统化，配合 AI 生成，显著缩短交付周期。"
 tags: [case, website, automation]
-draft: true
+draft: false
 ---
 
 <section>

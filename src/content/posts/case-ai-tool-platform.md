@@ -4,7 +4,7 @@ date: 2026-09-02
 type: post
 description: "内部 AI 工具平台的搭建：统一接入、权限、监控，让各业务线都能用上 AI。"
 tags: [case, platform, ai]
-draft: true
+draft: false
 ---
 
 <section>
