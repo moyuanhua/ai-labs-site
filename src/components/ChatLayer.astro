@@ -1,4 +1,5 @@
 ---
+import HeroOrb from './HeroOrb.astro';
 interface Props {
   variant: 'hero' | 'dock';
 }
@@ -61,36 +62,34 @@ const STATUS_BG = 'background: var(--color-accent);';
   <a
     href={`${BASE}chat`}
     data-chat-dock
-    aria-label="和 M 聊"
-    class="chat-dock fixed bottom-4 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1.5 cursor-pointer transition-transform duration-300 hover:scale-105"
+    aria-label="和 AI 聊"
+    class="chat-dock fixed bottom-6 right-6 z-30 w-[48px] h-[48px] flex items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-110 dock-orb-halo"
     onmouseenter="window.__MOYUANHUA_orbState='typing'"
     onmouseleave="window.__MOYUANHUA_orbState='idle'"
     onfocus="window.__MOYUANHUA_orbState='typing'"
     onblur="window.__MOYUANHUA_orbState='idle'"
   >
-    <!-- avatar: warm-ink disc + teal signature M + hairline photon ring.
-         Visual sibling to the favicon (same palette + same ring language)
-         but legible as a *person* (M = moyuanhua initial) not a planet.
-         No canvas, no animation surface — pure CSS. -->
-    <div
-      class="relative w-[56px] h-[56px] rounded-full flex items-center justify-center transition-shadow duration-300"
-      style="background: var(--color-dark); box-shadow: 0 0 0 1px var(--color-accent), 0 0 18px var(--color-accent-soft);"
-    >
-      <span
-        class="font-mono font-semibold text-[1.35rem] leading-none select-none"
-        style="color: var(--color-accent);"
-        aria-hidden="true"
-      >M</span>
-      <!-- pulsing live dot (signals 'this AI is here') -->
-      <span
-        class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full"
-        style="background: var(--color-accent); box-shadow: 0 0 6px var(--color-accent);"
-        aria-hidden="true"
-      ></span>
-    </div>
-    <span class="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-text-muted" aria-hidden="true">和 M 聊</span>
+    <HeroOrb size={48} />
   </a>
 )}
+
+<style is:global>
+  /* CSS-only breathing halo for the dock orb. The orb itself is
+     a canvas (HeroOrb) with its own internal animation; this halo
+     is a static glow that pulses, signaling 'this AI is alive'
+     without needing canvas frame-rate. Honors reduced-motion. */
+  .dock-orb-halo {
+    border-radius: 9999px;
+    animation: dock-orb-breathe 2.4s ease-in-out infinite;
+  }
+  @keyframes dock-orb-breathe {
+    0%, 100% { box-shadow: 0 0 0 0 var(--color-accent-soft); }
+    50%      { box-shadow: 0 0 0 6px var(--color-accent-soft); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dock-orb-halo { animation: none; box-shadow: 0 0 0 3px var(--color-accent-soft); }
+  }
+</style>
 
 <script is:inline>
   (() => {
