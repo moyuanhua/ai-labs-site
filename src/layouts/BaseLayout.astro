@@ -19,7 +19,7 @@ interface Props {
   hideNav?: boolean;
   hideFooter?: boolean;
 }
-const { title, description = 'AI 落地工程师 · 把 AI 从 demo 干到生产', chatVariant = 'dock', bgIntensity = 'ambient', hideNav = false, hideFooter = false } = Astro.props;
+const { title, description = 'AI 落地工程师 · 把 AI 从 demo 干到生产', chatVariant = 'dock', bgIntensity = 'none', hideNav = false, hideFooter = false } = Astro.props;
 const BASE = import.meta.env.BASE_URL;
 const navLinks = [
   { href: `${BASE}`,       label: '首页' },
