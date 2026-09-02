@@ -23,16 +23,32 @@ const { title, description = 'AI 落地工程师 · 把 AI 从 demo 干到生产
 const BASE = import.meta.env.BASE_URL;
 const navLinks = [
   { href: `${BASE}`,       label: '首页' },
-  { href: `${BASE}posts`,   label: '文章' },
-  { href: `${BASE}cases`,   label: '案例' },
-  { href: `${BASE}tools`,   label: '工具箱' },
-  { href: `${BASE}about`,   label: '关于' },
+  { href: `${BASE}posts`,  label: '文章' },
+  { href: `${BASE}cases`,  label: '案例' },
+  { href: `${BASE}tools`,  label: '工具箱' },
+  { href: `${BASE}about`,  label: '关于' },
 ];
-const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
-const isActive = (href: string) => {
-  const norm = href.replace(/\/$/, '') || '/';
-  return norm === '/' ? currentPath === '/' : currentPath === norm || currentPath.startsWith(norm + '/');
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+// Compare nav hrefs against the current path. With `BASE=/ai-labs-site/`,
+// `Astro.url.pathname` already INCLUDES the base (verified via build
+// logs: `/posts` page emits `pathname=/ai-labs-site/posts`). So href
+// and currentPath live in the same coordinate space. The only edge
+// case is the home link, whose href is just the base — that string
+// is a strict prefix of every other page's path, so a naive
+// `startsWith` would mark home as active everywhere. We special-case
+// the home to only match when we are exactly on the base.
+const baseNoSlash = BASE.endsWith('/') ? BASE.slice(0, -1) : BASE;
+const isHome = (href: string) => {
+  const norm = href.endsWith('/') && href.length > 1 ? href.slice(0, -1) : href;
+  return norm === baseNoSlash;
 };
+const isOther = (href: string) => {
+  const norm = href.endsWith('/') && href.length > 1 ? href.slice(0, -1) : href;
+  return currentPath === norm || currentPath.startsWith(norm + '/');
+};
+const isActive = (href: string) => isHome(href)
+  ? (currentPath === baseNoSlash || currentPath === '/ai-labs-site' || currentPath === '' || currentPath === '/')
+  : isOther(href);
 const year = new Date().getFullYear();
 ---
 
