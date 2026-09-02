@@ -1,10 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <!-- favicon: event horizon + photon ring + central highlight.
-       Intentionally not a copy of the HeroOrb canvas: this is the
-       *iconized* mark — readable from 16px up. Three pieces only:
-       a dark disc, a single teal arc, and a small central glow. -->
-  <rect width="128" height="128" rx="22" fill="#f4f1ea"/>
-  <circle cx="64" cy="64" r="36" fill="#1c1b18"/>
-  <circle cx="64" cy="64" r="40" fill="none" stroke="#0d9488" stroke-width="2" stroke-dasharray="180 360" stroke-dashoffset="-90" stroke-linecap="round"/>
-  <circle cx="64" cy="64" r="6" fill="#0d9488" opacity="0.45"/>
+  <!-- favicon v3: teal square + warm-ink M as a vector path.
+       v2 used <text> with dominant-baseline=central which renders
+       inconsistently across browsers at small sizes (Chrome / Safari
+       / Firefox all position the baseline slightly differently) and
+       disappeared entirely at 16px in headless captures. A vector
+       path for 'M' is the only way to guarantee pixel-stable render
+       at 16/32/64/128/180.
+
+       The M is two strokes: a left-leaning down-stroke from top-left
+       to bottom-center, then up to top, mirrored on the right. No
+       outer rectangle, no serifs. Reads as 'M' at every size.
+       v1 had a photon-ring arc — dropped because at icon scale it
+       read as a Japanese flag (decorative, not branded).
+       v3 is intentionally minimal: teal + one letter. -->
+  <rect width="128" height="128" rx="24" fill="#0d9488"/>
+  <path
+    d="M 36 92 L 36 36 L 64 76 L 92 36 L 92 92"
+    fill="none"
+    stroke="#f4f1ea"
+    stroke-width="11"
+    stroke-linecap="square"
+    stroke-linejoin="miter"
+  />
 </svg>
